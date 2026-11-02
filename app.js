@@ -1,0 +1,91 @@
+(() => {
+'use strict';
+const $=s=>document.querySelector(s), canvas=$('#game'), ctx=canvas.getContext('2d');
+const KEY='wedding-20261218-v1', cities=['惠州','广州','茂名'];
+let state={version:1,city:0,unlocked:[false,false,false],completed:null,guest:'',showName:true,showId:true}, storageOK=true;
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s?.version===1&&Number.isInteger(s.city)&&s.city>=0&&s.city<3&&Array.isArray(s.unlocked)&&s.unlocked.length===3){state={...state,...s};if(state.completed&&typeof state.completed.id!=='string')state.completed=null;}}catch{}
+function toast(t){$('#notice').textContent=t;$('#notice').style.display='block';setTimeout(()=>$('#notice').style.display='none',3500)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch{storageOK=false;toast('浏览器暂不能保存记录，请保留当前页面。');return false}}
+let running=false,paused=false,player={x:55,y:340,vy:0,ground:true},clock=0,last=0,acc=0,jumpQueued=false,exporting=false,outputUrl=null;
+const pointers=new Map(), keys=new Set();
+function pressed(k){return keys.has(k)||[...pointers.values()].includes(k)}
+function clearInput(){pointers.clear();keys.clear();jumpQueued=false;document.querySelectorAll('[data-key]').forEach(b=>b.classList.remove('pressed'))}
+function pause(){clearInput();if(running){paused=true;$('#pause').textContent='▶';$('#hint').textContent='已暂停 · 点击 ▶ 继续';}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});window.addEventListener('blur',pause);
+document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);pointers.set(e.pointerId,b.dataset.key);if(b.dataset.key==='jump')jumpQueued=true;b.classList.add('pressed')});const end=e=>{pointers.delete(e.pointerId);b.classList.toggle('pressed',[...pointers.values()].includes(b.dataset.key))};b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);b.addEventListener('lostpointercapture',end);b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();if(e.clientX<r.left-22||e.clientX>r.right+22||e.clientY<r.top-22||e.clientY>r.bottom+22)end(e)})});
+const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'jump',' ':'jump',w:'jump'};
+window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;const k=keyMap[e.key];if(k){e.preventDefault();if(k==='jump'&&!keys.has(k))jumpQueued=true;keys.add(k)}});window.addEventListener('keyup',e=>keys.delete(keyMap[e.key]));
+let checkpoint=0, facing=1, coyote=0, jumpBuffer=0, particles=[], previousPlatforms=[];
+function updateLabels(){document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮高窗','广州 · 借旋转平台，敲响钟楼','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':['跳上三级屋檐，触碰发光的窗户','等平台靠近，再起跳；钟铃在右上方','数字上沿可以站立，跳过数字之间的空隙'][state.city]}
+function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;updateLabels()}
+$('#start').onclick=()=>{running=true;paused=false;document.body.classList.add('playing');$('#cover').style.display='none';resetPlayer();if(state.completed)showTicket()};
+$('#pause').onclick=()=>{if(!running)return;if(paused){paused=false;last=0;acc=0;$('#pause').textContent='Ⅱ';updateLabels()}else pause()};
+$('#info').onclick=()=>{pause();$('#information').showModal()};document.querySelectorAll('dialog .close').forEach(b=>b.onclick=()=>b.closest('dialog').close());
+document.querySelectorAll('dialog').forEach(d=>{d.addEventListener('close',clearInput);d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}})});
+function platforms(){
+ if(state.city===0)return [{x:0,w:170,y:410},{x:205,w:112,y:350},{x:350,w:116,y:285},{x:505,w:110,y:335},{x:655,w:100,y:285},{x:800,w:160,y:350}];
+ if(state.city===1){const angle=clock*.65;return [{x:0,w:165,y:410},{x:195,w:110,y:345},{x:370+Math.cos(angle)*44,w:105,y:302+Math.sin(angle)*30,moving:true},{x:525,w:100,y:250},{x:670+Math.cos(angle+Math.PI)*30,w:100,y:300+Math.sin(angle+Math.PI)*30,moving:true},{x:815,w:145,y:360}]}
+ return [{x:0,w:155,y:410},{x:185,w:115,y:350,digit:'20'},{x:335,w:110,y:300,digit:'26'},{x:480,w:100,y:350,digit:'12'},{x:620,w:100,y:295,digit:'18'},{x:765,w:195,y:355}];
+}
+function burst(x,y){for(let i=0;i<25;i++)particles.push({x,y,vx:(Math.random()-.5)*140,vy:-Math.random()*150,life:1.4})}
+function step(dt){if(!running||paused||document.querySelector('dialog[open]'))return;
+ const oldPlatforms=platforms();clock+=dt;const ps=platforms();
+ if(player.ground&&player.on!=null&&ps[player.on]?.moving){player.x+=ps[player.on].x-oldPlatforms[player.on].x;player.y+=ps[player.on].y-oldPlatforms[player.on].y}
+ const oldY=player.y, dir=(pressed('right')?1:0)-(pressed('left')?1:0);if(dir)facing=dir;
+ player.x=Math.max(14,Math.min(944,player.x+dir*195*dt));
+ coyote=player.ground?.11:Math.max(0,coyote-dt);if(jumpQueued)jumpBuffer=.12;else jumpBuffer=Math.max(0,jumpBuffer-dt);jumpQueued=false;
+ if(jumpBuffer>0&&coyote>0){player.vy=-460;player.ground=false;player.on=null;coyote=0;jumpBuffer=0}
+ player.vy+=1050*dt;player.y+=player.vy*dt;player.ground=false;
+ for(let i=0;i<ps.length;i++){const p=ps[i];if(player.x+10>p.x&&player.x-10<p.x+p.w&&oldY+28<=p.y+3&&player.y+28>=p.y&&player.vy>=0){player.y=p.y-28;player.vy=0;player.ground=true;player.on=i;if(!p.moving&&i>checkpoint){checkpoint=i;state.checkpoints??=[0,0,0];state.checkpoints[state.city]=i;save()}break}}
+ if(player.y>530){resetPlayer();toast('没关系，回到刚刚站稳的屋檐，再试一次。');return}
+ const target=[{x:407,y:245},{x:575,y:210},{x:670,y:255}][state.city];
+ if(!state.unlocked[state.city]&&Math.abs(player.x-target.x)<48&&Math.abs(player.y-target.y)<62){state.unlocked[state.city]=true;save();burst(target.x,target.y);updateLabels();toast(['灯亮了！屋檐上的风，也在祝福你。','钟声响起！继续跳向右侧站台。','婚期已点亮！去右边打印你的纪念票。'][state.city])}
+ if(player.x>900&&player.ground){if(!state.unlocked[state.city]){toast('先点亮这一城的机关，再出发吧。');player.x=880}else if(state.city<2){state.city++;save();resetPlayer()}else finish()}
+ for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=130*dt;p.life-=dt}particles=particles.filter(p=>p.life>0);
+}
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function text(t,x,y,size=18,c='#36554a',font='serif'){ctx.fillStyle=c;ctx.font=`${size}px ${font}`;ctx.fillText(t,x,y)}
+function tree(x,y){rect(x+13,y+32,9,65,'#786c53');rect(x,y,36,43,'#708b68');rect(x-9,y+18,55,30,'#708b68');rect(x+5,y-12,24,25,'#8ca278')}
+function house(x,y,w,h,color){
+ rect(x,y,w,h,color);rect(x+w-9,y,9,h,'#88765c44');rect(x-7,y-9,w+14,13,'#526f65');rect(x-4,y-14,w+8,5,'#9da584');
+ for(let xx=x;xx<x+w;xx+=13)rect(xx,y-8,8,3,'#97a584');
+ for(let row=0;row<Math.floor((h-30)/44);row++)for(let col=0;col<Math.floor(w/34);col++){
+ const wx=x+11+col*34,wy=y+23+row*44;rect(wx-2,wy-2,23,29,'#b19e7c');rect(wx,wy,19,25,'#537b73');rect(wx+3,wy+3,13,19,state.unlocked[state.city]?'#f4ce83':'#bacab1');rect(wx+8,wy,2,25,'#698a77');rect(wx,wy+12,19,2,'#698a77');rect(wx-4,wy+26,27,4,'#927f62');
+ }
+ rect(x,y+h-40,w,3,'#af9876');for(let xx=x+8;xx<x+w-10;xx+=34){rect(xx,y+h-37,24,37,'#658477');ctx.fillStyle='#385c55';ctx.beginPath();ctx.arc(xx+12,y+h-20,9,Math.PI,0);ctx.fill();rect(xx+3,y+h-20,18,20,'#385c55');rect(xx+9,y+h-13,5,13,'#e3c187')}
+ for(let i=0;i<10;i++){const bx=x+((i*37)%Math.max(1,w-12)),by=y+12+((i*41)%Math.max(1,h-60));rect(bx,by,10,2,'#997e5840')}
+ rect(x+6,y+h-6,w-12,6,'#93846a');
+}
+function draw(){const c=state.city;ctx.save();if(innerWidth<760){ctx.scale(1.4,1.4);ctx.translate(-Math.max(0,Math.min(274,player.x-270)),-90)}
+ const sky=ctx.createLinearGradient(0,0,0,480);sky.addColorStop(0,['#708c9b','#d79b78','#578e97'][c]);sky.addColorStop(1,['#dce4cf','#f6d6a4','#e6d7ae'][c]);ctx.fillStyle=sky;ctx.fillRect(0,0,960,480);
+ const sunX=[800,160,770][c];ctx.fillStyle='#ffe5a2';ctx.beginPath();ctx.arc(sunX,92,30,0,Math.PI*2);ctx.fill();
+ for(let layer=0;layer<3;layer++){ctx.globalAlpha=.15+layer*.12;for(let i=0;i<13;i++){const x=i*90-30+layer*25;const h=50+Math.sin(i*14+layer)*35;rect(x,260-layer*25-h,65,h+160,['#356c76','#775d63','#32676c'][c]);if(c===1&&i%3===0)rect(x+26,180-layer*25-h,13,100,'#76545b')}}ctx.globalAlpha=1;
+ // River, reflections and stone embankment.
+ rect(0,369,960,111,['#81b3ad','#bdaa87','#79b4b0'][c]);for(let i=0;i<35;i++){const x=(i*113+Math.sin(clock*.8+i)*16)%960;rect(x,388+(i*29)%87,15+i%5*8,2,'#dce0b5')}
+ for(let i=0;i<10;i++){const x=(i*173+40)%960;const y=75+(i*37)%130;ctx.strokeStyle='#ffffff66';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x,y-3);ctx.lineTo(x+5,y);ctx.stroke()}
+ if(c===0){house(25,260,135,150,'#dac9a0');house(215,205,104,200,'#e9dab2');house(350,148,116,260,'#dbb795');house(650,190,110,215,'#dfcfad');tree(805,265);text('西 湖 · 惠 州',43,240,16,'#f8ead0');}
+ if(c===1){house(15,250,140,160,'#d7c39b');house(195,215,110,200,'#dbb78e');house(785,200,150,210,'#d4b792');rect(523,92,104,300,'#b98d6b');rect(512,82,126,16,'#5b726a');rect(538,57,75,25,'#637f71');rect(565,35,20,23,'#637f71');ctx.fillStyle='#f9e6bb';ctx.beginPath();ctx.arc(575,145,32,0,Math.PI*2);ctx.fill();ctx.save();ctx.translate(575,145);ctx.rotate(clock*.65);rect(-2,-25,4,27,'#4a655c');rect(-2,-2,22,4,'#4a655c');ctx.restore();text('粤 海 关',540,198,18,'#f9e6bb');
+ ctx.strokeStyle='#8c6855';ctx.lineWidth=4;ctx.beginPath();ctx.arc(422,302,47,0,Math.PI*2);ctx.stroke();for(const p of platforms().filter(p=>p.moving)){ctx.strokeStyle='#b38964';ctx.beginPath();ctx.moveTo(p.x+52, p.y+8);ctx.lineTo(445,313);ctx.stroke()}}
+ if(c===2){house(12,235,145,180,'#d6bf93');house(790,225,160,180,'#cfb18c');ctx.fillStyle='#f8e8c6';ctx.fillRect(166,108,576,300);ctx.strokeStyle='#b78a57';ctx.lineWidth=3;ctx.strokeRect(173,115,562,286);text('WEDDING EXPRESS',285,150,15,'#ac684e','Georgia');text('蓝诗曼  &  杨国林',275,204,30,'#7c5949');text('2026 · 12 · 18',320,242,23,'#ac684e','Georgia');tree(745,230);rect(845,276,83,80,'#416f64');rect(835,267,103,22,'#638d76');rect(855,239,63,30,'#fff0d2');rect(853,302,65,8,'#233f37');text('囍',870,342,27,'#f6d291');}
+ // Tiled roofs, brickwork and playable surfaces.
+ for(const [i,p] of platforms().entries()){if(p.digit){rect(p.x,p.y,p.w,5,'#c08050');text(p.digit,p.x+4,p.y+68,66,'#a6573e','Georgia');rect(p.x+6,p.y+76,p.w-12,4,'#c19d72')}else{rect(p.x,p.y,p.w,p.moving?14:22,'#5d796c');rect(p.x-4,p.y,p.w+8,5,'#d0b178');for(let xx=p.x+6;xx<p.x+p.w;xx+=16)rect(xx,p.y+7,10,3,'#829a7a');if(!p.moving){rect(p.x+5,p.y+22,8,480-p.y,'#9a8c6b');rect(p.x+p.w-13,p.y+22,8,480-p.y,'#9a8c6b')}}if(i===checkpoint&&running)text('◆',p.x+8,p.y-12,12,'#fff0a0')}
+ const target=[{x:407,y:245},{x:575,y:210},{x:670,y:255}][c];const pulse=.7+Math.sin(clock*3)*.2;ctx.globalAlpha=pulse;ctx.fillStyle=state.unlocked[c]?'#ffd789':'#fff1be';ctx.beginPath();ctx.arc(target.x,target.y,19,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;text(state.unlocked[c]?'♥':c===1?'♪':'✦',target.x-9,target.y+8,25,'#b65d40');
+ const x=player.x,y=player.y;ctx.fillStyle='#24483a33';ctx.beginPath();ctx.ellipse(x,y+35,15,4,0,0,Math.PI*2);ctx.fill();const walk=running&&!paused&&player.ground&&(pressed('left')||pressed('right'))?Math.sin(clock*17)*5:0;
+ rect(x-9,y-10,19,17,'#443e37');rect(x-8,y-4,16,17,'#e9bc95');rect(x-12,y+11,24,16,'#bb5943');rect(x-7,y+27,6,8+walk,'#3d5a51');rect(x+3,y+27,6,8-walk,'#3d5a51');rect(x+facing*6-1,y+1,3,3,'#3d3b33');rect(x-12,y-8,25,5,'#ebd2a1');rect(x-8,y-15,17,8,'#ebd2a1');rect(x-8,y-9,17,3,'#a75e42');rect(x-15,y+13,4,11,'#e4ac82');rect(x+12,y+13,4,11,'#e4ac82');
+ for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/1.4);rect(p.x,p.y,5,5,'#ffe3a1')}ctx.globalAlpha=1;
+ ctx.restore();rect(0,0,960,44,'#253f4166');text(['01 / 惠州 · 点亮屋檐的窗','02 / 广州 · 跃过时间的钟','03 / 茂名 · 走进我们的婚期'][c],23,29,17,'#fff2d2');text(state.unlocked[c]?'♥ 已点亮':'◇ 等你点亮',810,29,16,'#ffe0a0');
+}
+function frame(t){if(!last)last=t;acc+=Math.min((t-last)/1000,.05);last=t;while(acc>=1/120){step(1/120);acc-=1/120}draw();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function finish(){if(!state.completed){state.completed={id:'M-'+crypto.randomUUID().slice(0,8).toUpperCase(),at:new Date().toISOString()};save()}running=false;clearInput();showTicket()}
+function wrap(g,t,x,y,width,size,line=1.5){g.font=`${size}px "Microsoft YaHei",sans-serif`;let row='',yy=y;for(const ch of t){if(g.measureText(row+ch).width>width&&row){g.fillText(row,x,yy);yy+=size*line;row=''}row+=ch}if(row)g.fillText(row,x,yy);return yy}
+function ticketCanvas(side,scale=1){const cv=document.createElement('canvas');cv.width=1200*scale;cv.height=740*scale;const g=cv.getContext('2d');g.scale(scale,scale);g.fillStyle='#f6edd7';g.fillRect(0,0,1200,740);g.strokeStyle='#a78b5f';g.lineWidth=2;g.strokeRect(28,28,1144,684);g.strokeRect(38,38,1124,664);g.fillStyle='#ae5039';g.font='18px Georgia';g.fillText('THE WEDDING EXPRESS  /  2026',75,90);g.fillStyle='#354d42';
+if(side==='front'){g.font='64px "SimSun",serif';g.fillText('一程欢喜 · 婚礼纪念票',75,194);g.font='38px "SimSun",serif';g.fillText('蓝诗曼  &  杨国林',75,278);g.font='68px Georgia';g.fillText('2026.12.18',75,380);g.font='21px sans-serif';g.fillText('惠州 HUIZHOU   →   广州 GUANGZHOU   →   茂名 MAOMING',75,446);g.fillStyle='#dedac1';g.fillRect(850,225,240,200);g.fillStyle='#728474';g.font='24px serif';g.fillText('新人照片待提供',883,326);g.font='18px sans-serif';g.fillText('仅作评审占位',909,361);g.fillStyle='#354d42';if(state.showName)wrap(g,'致 '+(state.guest||'亲爱的你'),75,535,1000,30);if(state.showId){g.font='18px Georgia';g.fillText('SOUVENIR  '+state.completed.id,75,657)}g.font='17px sans-serif';g.fillText('期待与你相见',912,657)}else{g.font='52px "SimSun",serif';g.fillText('这一站，想和你相见。',75,185);g.font='26px sans-serif';g.fillText('2026年12月18日 · 星期五',75,270);g.font='21px sans-serif';g.fillText('农历十一月初十（待最终校对）',75,316);wrap(g,'地点：广东省茂名市电白区电城镇马踏',75,390,1030,27);wrap(g,'宴席时间、酒店 / 宴会厅、详细地址：待确认',75,455,1030,24);g.font='22px serif';g.fillText('从沿途的灯火，到相聚的这一刻，谢谢你来。',75,565);g.fillStyle='#ae5039';g.font='19px sans-serif';g.fillText('评审版 · 待补充正式照片与场地信息',75,652)}return cv}
+function preview(){const g=$('#ticket').getContext('2d');g.drawImage(ticketCanvas('front'),0,0);if(outputUrl){URL.revokeObjectURL(outputUrl);outputUrl=null}$('#output').replaceChildren();$('#export-status').textContent='生成后可长按图片保存，或点击下载。'}
+function showTicket(){paused=true;$('#guest').value=state.guest;$('#show-name').checked=state.showName;$('#show-id').checked=state.showId;preview();if(!$('#ticket-modal').open)$('#ticket-modal').showModal()}
+for(const id of ['guest','show-name','show-id'])$('#'+id).addEventListener('input',()=>{state.guest=$('#guest').value;state.showName=$('#show-name').checked;state.showId=$('#show-id').checked;save();preview()});
+$('#revisit').onclick=()=>{$('#ticket-modal').close();running=true;paused=false;state.city=0;state.unlocked=[false,false,false];state.checkpoints=[0,0,0];save();resetPlayer();$('#cover').style.display='none';$('#pause').textContent='Ⅱ'};
+document.querySelectorAll('[data-export]').forEach(b=>b.onclick=async()=>{if(exporting)return;exporting=true;const buttons=[...document.querySelectorAll('[data-export]')];buttons.forEach(b=>b.disabled=true);$('#export-status').textContent='正在生成高清图片…';const snapshot=JSON.stringify([state.guest,state.showName,state.showId]);try{await new Promise(r=>setTimeout(r,30));const side=b.dataset.export;let cv;if(side==='long'){cv=document.createElement('canvas');cv.width=2400;cv.height=2960;const g=cv.getContext('2d');g.drawImage(ticketCanvas('front',2),0,0);g.drawImage(ticketCanvas('back',2),0,1480)}else cv=ticketCanvas(side,2);const blob=await new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(Error('empty')),'image/png'));cv.width=1;cv.height=1;if(snapshot!==JSON.stringify([state.guest,state.showName,state.showId])){$('#export-status').textContent='设置已更新，请重新生成当前版本。';return}if(outputUrl)URL.revokeObjectURL(outputUrl);outputUrl=URL.createObjectURL(blob);const img=new Image();img.src=outputUrl;img.alt='高清婚礼纪念票，可长按保存';const link=document.createElement('a');link.href=outputUrl;link.download=`婚礼纪念票_${side}.png`;link.textContent='下载高清图片 ↓';$('#output').replaceChildren(img,link);$('#export-status').textContent='图片已生成。微信内可长按下方图片保存；生成不代表已存入相册。'}catch{$('#export-status').textContent='生成失败，完成记录仍保留。请重试，或分别生成正面与背面。'}finally{exporting=false;buttons.forEach(b=>b.disabled=false)}});
+// Public entry is always free of guest data, souvenir IDs and local progress.
+if(location.search||location.hash){try{history.replaceState(null,'',location.pathname)}catch{}}
+updateLabels();if(state.completed){$('#cover').style.display='none';showTicket()}
+})();
