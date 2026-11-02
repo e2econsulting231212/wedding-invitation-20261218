@@ -5,14 +5,14 @@ window.paintLandmarks=(g,c,t)=>{
  const pavilion=(x,y)=>{rect(x-22,y,5,41,'#9e6550');rect(x+18,y,5,41,'#9e6550');rect(x-25,y+37,52,5,'#b9ad8c');roof(x-33,y-7,66)};
  if(c===0){
   // Lake planes and a low, angular bridge instead of a generic arch.
-  rect(0,290,960,190,'#a1c2bb');for(let i=0;i<23;i++)rect((i*83)%960,303+i*7,24+i%4*12,1,'#d8dfc2');
+  rect(0,290,960,190,'#2b465d');for(let i=0;i<23;i++)rect((i*83)%960,303+i*7,24+i%4*12,1,'#d8dfc2');
   const bridge=[[35,382],[116,362],[178,380],[260,348],[334,366],[422,337],[501,358],[589,328],[672,348],[754,322],[848,343],[945,321]];
   path(bridge.map(([x,y])=>[x,y+8]),'#78978c',10);path(bridge,'#ddcfaa',8);
   for(let i=0;i<bridge.length-1;i++){const [x,y]=bridge[i],[a,b]=bridge[i+1];path([[x,y-12],[a,b-12]],'#b9ae8d',2);for(let k=0;k<5;k++){const u=k/5,xx=x+(a-x)*u,yy=y+(b-y)*u;path([[xx,yy-13],[xx,yy+3]],'#cfc2a0',2)}}
   pavilion(180,337);pavilion(754,279);txt('九曲桥 · 西湖印象',75,425,13);
   // Hejiang-style multi-tiered eaves; landmark montage, not its real lakeside location.
-  const x=343,w=135;rect(x-9,285,w+18,28,'#aaa188');rect(x,177,w,111,'#e6ceb0');rect(x+16,125,w-32,61,'#dbc39f');rect(x+31,82,w-62,52,'#ead7b4');
-  for(const [yy,ww] of [[277,135],[224,135],[175,135],[124,103],[81,73]]){const xx=x+(w-ww)/2;for(let i=0;i<5;i++){rect(xx+8+i*(ww-16)/5,yy+15,4,30,'#98614c');rect(xx+10+i*(ww-16)/5,yy+18,(ww-25)/5,15,'#a5ae94')}roof(xx-5,yy,ww+10)}
+  const x=343,w=135;rect(x-9,285,w+18,28,'#aaa188');rect(x,177,w,111,'#6b7278');rect(x+16,125,w-32,61,'#626b75');rect(x+31,82,w-62,52,'#74808a');
+  for(const [yy,ww] of [[277,135],[224,135],[175,135],[124,103],[81,73]]){const xx=x+(w-ww)/2;for(let i=0;i<5;i++){rect(xx+8+i*(ww-16)/5,yy+15,4,30,'#98614c');rect(xx+10+i*(ww-16)/5,yy+18,(ww-25)/5,15,'#31465b')}roof(xx-5,yy,ww+10)}
   rect(x+42,204,54,17,'#466061');g.fillStyle='#e8cd98';g.font='13px serif';g.fillText('合 江 楼',x+45,217);
   txt('惠州城市印象',25,70,15);
  }

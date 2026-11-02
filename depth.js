@@ -1,5 +1,5 @@
 /* 2.5D painting: the bright top edge stays on the actual collision height. */
-window.drawPlatformDepth=(g,p,index,next,time)=>{
+window.drawPlatformDepth=(g,p,index,next,time,revealed=true)=>{
  const x=p.x,y=p.y,w=p.w,h=p.digit?72:32;
  const poly=(pts,color)=>{g.fillStyle=color;g.beginPath();pts.forEach(([a,b],i)=>i?g.lineTo(a,b):g.moveTo(a,b));g.closePath();g.fill()};
  g.save();
@@ -13,7 +13,7 @@ window.drawPlatformDepth=(g,p,index,next,time)=>{
  g.strokeStyle='#173b50';g.lineWidth=2;g.strokeRect(x,y,w,h);g.strokeStyle='#fff8dc';g.lineWidth=3;g.beginPath();g.moveTo(x+2,y+1);g.lineTo(x+w-2,y+1);g.stroke();
  g.strokeStyle='#80b4b5';g.lineWidth=1;g.beginPath();g.moveTo(x+2,y+13);g.lineTo(x+w-15,y+13);g.stroke();
  for(let xx=x+10;xx<x+w-18;xx+=23){g.fillStyle='#9dbbb055';g.fillRect(xx,y+18,11,2)}
- if(p.digit){g.font='bold 49px Georgia';g.textAlign='center';g.fillStyle='#092e43';g.fillText(p.digit,x+w/2+1,y+61);g.fillStyle='#f4dfad';g.fillText(p.digit,x+w/2,y+59)}
+ if(p.digit){g.font='bold 49px Georgia';g.textAlign='center';g.fillStyle='#092e43';g.fillText(revealed?p.digit:'·',x+w/2+1,y+61);g.fillStyle='#f4dfad';g.fillText(revealed?p.digit:'·',x+w/2,y+59)}
  else if(p.moving){g.fillStyle='#e7c78b';for(let i=0;i<3;i++){g.beginPath();g.arc(x+w/2+(i-1)*12,y+23,2,0,Math.PI*2);g.fill()}}
  else {g.fillStyle='#163c4d';g.fillRect(x+11,y+h,7,12);g.fillRect(x+w-22,y+h,7,12)}
  if(index===next){
