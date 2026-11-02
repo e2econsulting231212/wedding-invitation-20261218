@@ -17,7 +17,7 @@ const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'ju
 window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;const k=keyMap[e.key];if(k){e.preventDefault();if(k==='jump'&&!keys.has(k))jumpQueued=true;keys.add(k)}});window.addEventListener('keyup',e=>keys.delete(keyMap[e.key]));
 let visualCity=-1, visualPlatform=0;
 let checkpoint=0, facing=1, coyote=0, jumpBuffer=0, particles=[], previousPlatforms=[];
-function updateLabels(){document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮高窗','广州 · 借旋转平台，敲响钟楼','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':['跳上三级屋檐，触碰发光的窗户','等平台靠近，再起跳；钟铃在右上方','数字上沿可以站立，跳过数字之间的空隙'][state.city]}
+function updateLabels(){document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮高窗','广州 · 借旋转平台，点亮广州塔','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':['跳上三级屋檐，触碰发光的窗户','等平台靠近，再起跳；塔上的光点在前方','数字上沿可以站立，跳过数字之间的空隙'][state.city]}
 function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;updateLabels()}
 $('#start').onclick=()=>{running=true;paused=false;document.body.classList.add('playing');$('#cover').style.display='none';resetPlayer();if(state.completed)showTicket()};
 $('#pause').onclick=()=>{if(!running)return;if(paused){paused=false;last=0;acc=0;$('#pause').textContent='Ⅱ';updateLabels()}else pause()};
@@ -40,7 +40,7 @@ function step(dt){if(!running||paused||document.querySelector('dialog[open]'))re
  for(let i=0;i<ps.length;i++){const p=ps[i];if(player.x+10>p.x&&player.x-10<p.x+p.w&&oldY+28<=p.y+3&&player.y+28>=p.y&&player.vy>=0){if(player.vy>240)for(let n=0;n<5;n++)particles.push({x:player.x+(n-2)*4,y:p.y-2,vx:(n-2)*13,vy:-22-n%2*12,life:.35});player.y=p.y-28;player.vy=0;player.ground=true;player.on=i;if(!p.moving&&i>checkpoint){checkpoint=i;state.checkpoints??=[0,0,0];state.checkpoints[state.city]=i;save()}break}}
  if(player.y>530){resetPlayer();toast('没关系，回到刚刚站稳的屋檐，再试一次。');return}
  const target=[{x:407,y:245},{x:575,y:210},{x:670,y:255}][state.city];
- if(!state.unlocked[state.city]&&Math.abs(player.x-target.x)<48&&Math.abs(player.y-target.y)<62){state.unlocked[state.city]=true;save();burst(target.x,target.y);updateLabels();toast(['灯亮了！屋檐上的风，也在祝福你。','钟声响起！继续跳向右侧站台。','婚期已点亮！去右边打印你的纪念票。'][state.city])}
+ if(!state.unlocked[state.city]&&Math.abs(player.x-target.x)<48&&Math.abs(player.y-target.y)<62){state.unlocked[state.city]=true;save();burst(target.x,target.y);updateLabels();toast(['灯亮了！屋檐上的风，也在祝福你。','广州塔亮了！继续跳向右侧站台。','婚期已点亮！去右边打印你的纪念票。'][state.city])}
  if(player.x>900&&player.ground){if(!state.unlocked[state.city]){toast('先点亮这一城的机关，再出发吧。');player.x=880}else if(state.city<2){state.city++;save();resetPlayer()}else finish()}
  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=130*dt;p.life-=dt}particles=particles.filter(p=>p.life>0);
 }
@@ -71,8 +71,9 @@ function draw(){const c=state.city;ctx.save();if(innerWidth<760){ctx.scale(1.4,1
  rect(0,369,960,111,['#81b3ad','#bdaa87','#79b4b0'][c]);for(let i=0;i<35;i++){const x=(i*113+Math.sin(clock*.8+i)*16)%960;rect(x,388+(i*29)%87,15+i%5*8,2,'#dce0b5')}
  for(let i=0;i<10;i++){const x=(i*173+40)%960;const y=75+(i*37)%130;ctx.strokeStyle='#ffffff66';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x,y-3);ctx.lineTo(x+5,y);ctx.stroke()}
  window.paintScenery?.(ctx,c,clock,'back');
- if(c===0){house(25,260,135,150,'#dac9a0');house(215,205,104,200,'#e9dab2');house(350,148,116,260,'#dbb795');house(650,190,110,215,'#dfcfad');tree(805,265);text('西 湖 · 惠 州',43,240,16,'#f8ead0');}
- if(c===1){house(15,250,140,160,'#d7c39b');house(195,215,110,200,'#dbb78e');house(785,200,150,210,'#d4b792');rect(523,92,104,300,'#b98d6b');rect(512,82,126,16,'#5b726a');rect(538,57,75,25,'#637f71');rect(565,35,20,23,'#637f71');ctx.fillStyle='#f9e6bb';ctx.beginPath();ctx.arc(575,145,32,0,Math.PI*2);ctx.fill();ctx.save();ctx.translate(575,145);ctx.rotate(clock*.65);rect(-2,-25,4,27,'#4a655c');rect(-2,-2,22,4,'#4a655c');ctx.restore();text('粤 海 关',540,198,18,'#f9e6bb');
+ window.paintLandmarks?.(ctx,c,clock);
+ if(c===0){tree(35,245);tree(865,250);}
+ if(c===1){house(15,250,140,160,'#d7c39b');house(195,215,110,200,'#dbb78e');house(785,200,150,210,'#d4b792');
  ctx.strokeStyle='#8c6855';ctx.lineWidth=4;ctx.beginPath();ctx.arc(422,302,47,0,Math.PI*2);ctx.stroke();for(const p of platforms().filter(p=>p.moving)){ctx.strokeStyle='#b38964';ctx.beginPath();ctx.moveTo(p.x+52, p.y+8);ctx.lineTo(445,313);ctx.stroke()}}
  if(c===2){house(12,235,145,180,'#d6bf93');house(790,225,160,180,'#cfb18c');ctx.fillStyle='#f8e8c6';ctx.fillRect(166,108,576,300);ctx.strokeStyle='#b78a57';ctx.lineWidth=3;ctx.strokeRect(173,115,562,286);text('WEDDING EXPRESS',285,150,15,'#ac684e','Georgia');text('蓝诗曼  &  杨国林',275,204,30,'#7c5949');text('2026 · 12 · 18',320,242,23,'#ac684e','Georgia');tree(745,230);rect(845,276,83,80,'#416f64');rect(835,267,103,22,'#638d76');rect(855,239,63,30,'#fff0d2');rect(853,302,65,8,'#233f37');text('囍',870,342,27,'#f6d291');}
  window.paintScenery?.(ctx,c,clock,'front');
@@ -85,7 +86,7 @@ function draw(){const c=state.city;ctx.save();if(innerWidth<760){ctx.scale(1.4,1
  const x=player.x,y=player.y;ctx.fillStyle='#24483a33';ctx.beginPath();ctx.ellipse(x,y+35,15,4,0,0,Math.PI*2);ctx.fill();const walk=running&&!paused&&player.ground&&(pressed('left')||pressed('right'))?Math.sin(clock*17)*5:0;
  window.drawTravelerDepth(ctx,player,facing,walk);
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/1.4);rect(p.x,p.y,5,5,'#ffe3a1')}ctx.globalAlpha=1;
- ctx.restore();rect(0,0,960,44,'#253f4166');text(['01 / 惠州 · 点亮屋檐的窗','02 / 广州 · 跃过时间的钟','03 / 茂名 · 走进我们的婚期'][c],23,29,17,'#fff2d2');text(state.unlocked[c]?'♥ 已点亮':'◇ 等你点亮',810,29,16,'#ffe0a0');
+ ctx.restore();rect(0,0,960,44,'#253f4166');text(['01 / 惠州 · 点亮屋檐的窗','02 / 广州 · 点亮珠江畔的塔','03 / 茂名 · 走进我们的婚期'][c],23,29,17,'#fff2d2');text(state.unlocked[c]?'♥ 已点亮':'◇ 等你点亮',810,29,16,'#ffe0a0');
 }
 function frame(t){if(!last)last=t;acc+=Math.min((t-last)/1000,.05);last=t;while(acc>=1/120){step(1/120);acc-=1/120}draw();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 function finish(){if(!state.completed){state.completed={id:'M-'+crypto.randomUUID().slice(0,8).toUpperCase(),at:new Date().toISOString()};save()}running=false;clearInput();showTicket()}

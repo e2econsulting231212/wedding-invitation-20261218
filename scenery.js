@@ -7,25 +7,13 @@ window.paintScenery=(g,city,time,phase)=>{
  if(phase==='back'){
   // Slow cloud layers, far hills and patterned glints.
   g.globalAlpha=.22;for(let i=0;i<5;i++){const x=((i*223+time*3)%1160)-100,y=75+i%3*33;oval(x,y,55,9,'#fff4da');oval(x+15,y-7,28,10,'#fff4da')}g.globalAlpha=1;
-  if(city===0){
-   g.fillStyle='#567e7480';g.beginPath();g.moveTo(0,340);for(let x=0;x<=960;x+=10)g.lineTo(x,278+Math.sin(x/65)*18+Math.cos(x/113)*24);g.lineTo(960,390);g.lineTo(0,390);g.fill();
-   // Lakeside pavilion, tucked between the roof route.
-   const x=532,y=218;box(x-23,y+21,5,83,'#8d7354');box(x+23,y+21,5,83,'#8d7354');box(x-27,y+78,60,5,'#9c835b');line([[x-43,y+27],[x-27,y+12],[x,y-5],[x+28,y+12],[x+45,y+27]],'#506f62',7);line([[x-41,y+22],[x-28,y+15],[x,y],[x+28,y+15],[x+43,y+22]],'#a9b69a',2);lantern(x,y+32,.55);
-   // An arched footbridge is distant scenery, not a platform.
-   g.strokeStyle='#b8b79a';g.lineWidth=9;g.beginPath();g.arc(560,396,100,Math.PI,0);g.stroke();for(let i=0;i<11;i++){let a=Math.PI+i*Math.PI/10;line([[560+Math.cos(a)*100,396+Math.sin(a)*100],[560+Math.cos(a)*100,382+Math.sin(a)*100]],'#c8c2a1',3)}
-  }
   if(city===1){
-   // Slim distant tower and strings of warm festival bulbs.
-   line([[730,268],[747,172],[735,139],[746,91],[752,72],[759,91],[769,139],[757,172],[777,268]],'#8e786566',3);for(let i=0;i<7;i++)line([[738,114+i*20],[765,123+i*20]],'#d5b38b66');
    for(let i=0;i<7;i++){const x=40+i*143,y=168+Math.sin(i*.65)*20;line([[x,y],[x+143,168+Math.sin((i+1)*.65)*20]],'#826c55',1);oval(x+55,y+12,3,5,'#ffe3a0');oval(x+100,y+12,3,5,'#ffe3a0')}
   }
   if(city===2){palm(84,328,.85);palm(760,330,1);palm(939,355,.7);}
  }
  if(phase==='front'){
   if(city===0){
-   // Roof tile seams, warm window frames, a waterside shop.
-   box(40,321,103,23,'#5b7969');label('湖 畔 茶 舍',48,338,14,'#f4dfb0');lantern(35,348,.6);lantern(147,348,.6);pot(32,392);pot(137,392);
-   box(369,224,75,6,'#917255');box(372,230,4,38,'#baa073');box(438,230,4,38,'#baa073');
    for(let i=0;i<5;i++){const x=490+i*20,y=443+Math.sin(i*2)*6;oval(x,y,8,3,'#5c8d6e');oval(x+1,y-4,3,3,i%2?'#dfb69a':'#ebc7ae')}
    // Small boat, gently bobbing below the route.
    const by=447+Math.sin(time*1.2)*2;line([[247,by],[256,by+8],[291,by+8],[301,by]],'#795a40',4);line([[269,by-1],[269,by-24]],'#a48258',2);line([[269,by-23],[288,by-3],[271,by-3]],'#e6d3a4',2);
@@ -36,9 +24,6 @@ window.paintScenery=(g,city,time,phase)=>{
    // Striped awnings, shutters, hanging signs, planters.
    for(const [x,y,w] of [[31,325,105],[208,284,83],[801,315,119]]){for(let i=0;i<w;i+=12)box(x+i,y,12,12,i%24===0?'#b57c56':'#e5c89b');line([[x,y+12],[x+w,y+12]],'#7b6b51',2);pot(x+9,y+51);pot(x+w-10,y+51)}
    lantern(181,248,.72);lantern(316,225,.65);lantern(775,253,.7);
-   // Cornices, clock dial numerals and central spindle.
-   for(let i=0;i<12;i++){const a=i*Math.PI/6;line([[575+Math.sin(a)*25,145-Math.cos(a)*25],[575+Math.sin(a)*29,145-Math.cos(a)*29]],'#9a7f59',2)}oval(575,145,3,3,'#805e40');
-   for(let i=0;i<5;i++){box(531,223+i*28,87,2,'#98755055');box(531,226+i*28,87,1,'#e4bd8b55')}
    // Station sign is separate from the playable moving platform.
    box(836,332,99,19,'#46675f');label('茂名方向 →',843,346,12,'#f4d8a4');
   }
