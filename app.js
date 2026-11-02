@@ -15,6 +15,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});w
 document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);pointers.set(e.pointerId,b.dataset.key);if(b.dataset.key==='jump')jumpQueued=true;b.classList.add('pressed')});const end=e=>{pointers.delete(e.pointerId);b.classList.toggle('pressed',[...pointers.values()].includes(b.dataset.key))};b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);b.addEventListener('lostpointercapture',end);b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();if(e.clientX<r.left-22||e.clientX>r.right+22||e.clientY<r.top-22||e.clientY>r.bottom+22)end(e)})});
 const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'jump',' ':'jump',w:'jump'};
 window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;const k=keyMap[e.key];if(k){e.preventDefault();if(k==='jump'&&!keys.has(k))jumpQueued=true;keys.add(k)}});window.addEventListener('keyup',e=>keys.delete(keyMap[e.key]));
+let visualCity=-1, visualPlatform=0;
 let checkpoint=0, facing=1, coyote=0, jumpBuffer=0, particles=[], previousPlatforms=[];
 function updateLabels(){document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮高窗','广州 · 借旋转平台，敲响钟楼','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':['跳上三级屋檐，触碰发光的窗户','等平台靠近，再起跳；钟铃在右上方','数字上沿可以站立，跳过数字之间的空隙'][state.city]}
 function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;updateLabels()}
@@ -45,9 +46,15 @@ function step(dt){if(!running||paused||document.querySelector('dialog[open]'))re
 }
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function text(t,x,y,size=18,c='#36554a',font='serif'){ctx.fillStyle=c;ctx.font=`${size}px ${font}`;ctx.fillText(t,x,y)}
-function tree(x,y){rect(x+13,y+32,9,65,'#786c53');rect(x,y,36,43,'#708b68');rect(x-9,y+18,55,30,'#708b68');rect(x+5,y-12,24,25,'#8ca278')}
+function tree(x,y){
+ const bark=ctx.createLinearGradient(x+10,0,x+23,0);bark.addColorStop(0,'#aa9267');bark.addColorStop(1,'#5b6651');ctx.fillStyle=bark;ctx.fillRect(x+12,y+23,11,74);
+ for(const [dx,dy,r] of [[4,30,23],[34,29,24],[18,4,27]]){const leaf=ctx.createRadialGradient(x+dx-7,y+dy-9,2,x+dx,y+dy,r);leaf.addColorStop(0,'#b8c69b');leaf.addColorStop(.45,'#7e9c7d');leaf.addColorStop(1,'#486f62');ctx.fillStyle=leaf;ctx.beginPath();ctx.arc(x+dx,y+dy,r,0,Math.PI*2);ctx.fill()}
+}
 function house(x,y,w,h,color){
- rect(x,y,w,h,color);rect(x+w-9,y,9,h,'#88765c44');rect(x-7,y-9,w+14,13,'#526f65');rect(x-4,y-14,w+8,5,'#9da584');
+ ctx.fillStyle='#46636d';ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w+14,y-12);ctx.lineTo(x+w+14,y+h-12);ctx.lineTo(x+w,y+h);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#b0bca2';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+14,y-12);ctx.lineTo(x+w+14,y-12);ctx.lineTo(x+w,y);ctx.closePath();ctx.fill();
+
+ rect(x,y,w,h,color);const side=ctx.createLinearGradient(x+w-19,y,x+w,y);side.addColorStop(0,'#6c807329');side.addColorStop(1,'#364d5666');ctx.fillStyle=side;ctx.fillRect(x+w-19,y,19,h);rect(x,y,w,3,'#fff4d188');rect(x+w-9,y,9,h,'#88765c44');rect(x-7,y-9,w+14,13,'#526f65');rect(x-4,y-14,w+8,5,'#9da584');
  for(let xx=x;xx<x+w;xx+=13)rect(xx,y-8,8,3,'#97a584');
  for(let row=0;row<Math.floor((h-30)/44);row++)for(let col=0;col<Math.floor(w/34);col++){
  const wx=x+11+col*34,wy=y+23+row*44;rect(wx-2,wy-2,23,29,'#b19e7c');rect(wx,wy,19,25,'#537b73');rect(wx+3,wy+3,13,19,state.unlocked[state.city]?'#f4ce83':'#bacab1');rect(wx+8,wy,2,25,'#698a77');rect(wx,wy+12,19,2,'#698a77');rect(wx-4,wy+26,27,4,'#927f62');
@@ -69,11 +76,14 @@ function draw(){const c=state.city;ctx.save();if(innerWidth<760){ctx.scale(1.4,1
  ctx.strokeStyle='#8c6855';ctx.lineWidth=4;ctx.beginPath();ctx.arc(422,302,47,0,Math.PI*2);ctx.stroke();for(const p of platforms().filter(p=>p.moving)){ctx.strokeStyle='#b38964';ctx.beginPath();ctx.moveTo(p.x+52, p.y+8);ctx.lineTo(445,313);ctx.stroke()}}
  if(c===2){house(12,235,145,180,'#d6bf93');house(790,225,160,180,'#cfb18c');ctx.fillStyle='#f8e8c6';ctx.fillRect(166,108,576,300);ctx.strokeStyle='#b78a57';ctx.lineWidth=3;ctx.strokeRect(173,115,562,286);text('WEDDING EXPRESS',285,150,15,'#ac684e','Georgia');text('蓝诗曼  &  杨国林',275,204,30,'#7c5949');text('2026 · 12 · 18',320,242,23,'#ac684e','Georgia');tree(745,230);rect(845,276,83,80,'#416f64');rect(835,267,103,22,'#638d76');rect(855,239,63,30,'#fff0d2');rect(853,302,65,8,'#233f37');text('囍',870,342,27,'#f6d291');}
  window.paintScenery?.(ctx,c,clock,'front');
- // Tiled roofs, brickwork and playable surfaces.
- for(const [i,p] of platforms().entries()){if(p.digit){rect(p.x,p.y,p.w,5,'#c08050');text(p.digit,p.x+4,p.y+68,66,'#a6573e','Georgia');rect(p.x+6,p.y+76,p.w-12,4,'#c19d72')}else{rect(p.x,p.y,p.w,p.moving?14:22,'#5d796c');rect(p.x-4,p.y,p.w+8,5,'#d0b178');for(let xx=p.x+6;xx<p.x+p.w;xx+=16)rect(xx,p.y+7,10,3,'#829a7a');if(!p.moving){rect(p.x+5,p.y+22,8,480-p.y,'#9a8c6b');rect(p.x+p.w-13,p.y+22,8,480-p.y,'#9a8c6b')}}if(i===checkpoint&&running)text('◆',p.x+8,p.y-12,12,'#fff0a0')}
+ // Fade decorative planes; all playable surfaces are rendered sharply afterwards.
+ ctx.fillStyle=['#d9e5e866','#ebe1d566','#dce8e366'][c];ctx.fillRect(0,44,960,436);
+ const ps=platforms();if(visualCity!==c){visualCity=c;visualPlatform=checkpoint}if(player.ground&&player.on!=null)visualPlatform=player.on;const routeIndex=visualPlatform;
+ const next=running?Math.min(routeIndex+1,ps.length-1):-1;
+ for(const [i,p] of ps.entries())window.drawPlatformDepth(ctx,p,i,next,clock);
  const target=[{x:407,y:245},{x:575,y:210},{x:670,y:255}][c];const pulse=.7+Math.sin(clock*3)*.2;ctx.globalAlpha=pulse;ctx.fillStyle=state.unlocked[c]?'#ffd789':'#fff1be';ctx.beginPath();ctx.arc(target.x,target.y,19,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;text(state.unlocked[c]?'♥':c===1?'♪':'✦',target.x-9,target.y+8,25,'#b65d40');
  const x=player.x,y=player.y;ctx.fillStyle='#24483a33';ctx.beginPath();ctx.ellipse(x,y+35,15,4,0,0,Math.PI*2);ctx.fill();const walk=running&&!paused&&player.ground&&(pressed('left')||pressed('right'))?Math.sin(clock*17)*5:0;
- rect(x-9,y-10,19,17,'#443e37');rect(x-8,y-4,16,17,'#e9bc95');rect(x-12,y+11,24,16,'#bb5943');rect(x-7,y+27,6,8+walk,'#3d5a51');rect(x+3,y+27,6,8-walk,'#3d5a51');rect(x+facing*6-1,y+1,3,3,'#3d3b33');rect(x-12,y-8,25,5,'#ebd2a1');rect(x-8,y-15,17,8,'#ebd2a1');rect(x-8,y-9,17,3,'#a75e42');rect(x-15,y+13,4,11,'#e4ac82');rect(x+12,y+13,4,11,'#e4ac82');
+ window.drawTravelerDepth(ctx,player,facing,walk);
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/1.4);rect(p.x,p.y,5,5,'#ffe3a1')}ctx.globalAlpha=1;
  ctx.restore();rect(0,0,960,44,'#253f4166');text(['01 / 惠州 · 点亮屋檐的窗','02 / 广州 · 跃过时间的钟','03 / 茂名 · 走进我们的婚期'][c],23,29,17,'#fff2d2');text(state.unlocked[c]?'♥ 已点亮':'◇ 等你点亮',810,29,16,'#ffe0a0');
 }
