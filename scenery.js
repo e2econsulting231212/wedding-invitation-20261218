@@ -30,8 +30,8 @@ window.paintScenery=(g,city,time,phase)=>{
   if(city===2){
    box(22,289,125,24,'#ac6549');label('电 城 · 老 街',29,306,15,'#fae5ba');lantern(20,320,.65);lantern(151,320,.65);pot(32,391);pot(132,391);pot(800,390);palm(953,424,.8);
    // Perforated ticket border and corner ornaments, clear of date platforms.
-   g.strokeStyle='#b28b5d';g.setLineDash([2,6]);g.strokeRect(184,127,540,266);g.setLineDash([]);
-   for(const x of [192,714])for(const y of [135,385]){line([[x,y+8],[x,y],[x+(x<400?9:-9),y]],'#c09964',2)}
+   g.strokeStyle='#b28b5d';g.setLineDash([2,6]);g.strokeRect(184,127,540,145);g.setLineDash([]);
+   for(const x of [192,714])for(const y of [135,268]){line([[x,y+8],[x,y],[x+(x<400?9:-9),y]],'#c09964',2)}
    label('HUIZHOU / GUANGZHOU / MAOMING',278,174,11,'#a38b64');label('相 聚 的 日 子',384,277,13,'#b29067');
    // Printer screws, paper rulings, status lamp and scalloped paper edge.
    for(const x of [841,931])oval(x,278,2,2,'#d6c69b');box(859,249,54,1,'#c5ab7e');box(859,254,36,1,'#c5ab7e');oval(918,297,3,3,'#e7d384');

@@ -75,7 +75,7 @@ function draw(){const c=state.city;ctx.save();if(innerWidth<760){ctx.scale(1.4,1
  if(c===0){tree(35,245);tree(865,250);}
  if(c===1){house(15,250,140,160,'#d7c39b');house(195,215,110,200,'#dbb78e');house(785,200,150,210,'#d4b792');
  ctx.strokeStyle='#8c6855';ctx.lineWidth=4;ctx.beginPath();ctx.arc(422,302,47,0,Math.PI*2);ctx.stroke();for(const p of platforms().filter(p=>p.moving)){ctx.strokeStyle='#b38964';ctx.beginPath();ctx.moveTo(p.x+52, p.y+8);ctx.lineTo(445,313);ctx.stroke()}}
- if(c===2){house(12,235,145,180,'#d6bf93');house(790,225,160,180,'#cfb18c');ctx.fillStyle='#f8e8c6';ctx.fillRect(166,108,576,300);ctx.strokeStyle='#b78a57';ctx.lineWidth=3;ctx.strokeRect(173,115,562,286);text('WEDDING EXPRESS',285,150,15,'#ac684e','Georgia');text('蓝诗曼  &  杨国林',275,204,30,'#7c5949');text('2026 · 12 · 18',320,242,23,'#ac684e','Georgia');tree(745,230);rect(845,276,83,80,'#416f64');rect(835,267,103,22,'#638d76');rect(855,239,63,30,'#fff0d2');rect(853,302,65,8,'#233f37');text('囍',870,342,27,'#f6d291');}
+ if(c===2){house(12,235,145,180,'#d6bf93');house(790,225,160,180,'#cfb18c');ctx.fillStyle='#f8e8c6';ctx.fillRect(166,108,576,180);ctx.strokeStyle='#b78a57';ctx.lineWidth=3;ctx.strokeRect(173,115,562,166);text('WEDDING EXPRESS',285,150,15,'#ac684e','Georgia');text('蓝诗曼  &  杨国林',275,204,30,'#7c5949');text('2026 · 12 · 18',320,242,23,'#ac684e','Georgia');tree(745,230);rect(845,276,83,80,'#416f64');rect(835,267,103,22,'#638d76');rect(855,239,63,30,'#fff0d2');rect(853,302,65,8,'#233f37');text('囍',870,342,27,'#f6d291');}
  window.paintScenery?.(ctx,c,clock,'front');
  // Fade decorative planes; all playable surfaces are rendered sharply afterwards.
  ctx.fillStyle=['#d9e5e866','#ebe1d566','#dce8e366'][c];ctx.fillRect(0,44,960,436);
