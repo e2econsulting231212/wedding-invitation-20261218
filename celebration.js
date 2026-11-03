@@ -6,15 +6,18 @@ window.paintWedding=(g,t,dates)=>{
  const arch=g.createLinearGradient(400,80,560,280);arch.addColorStop(0,'#f5d69c');arch.addColorStop(1,'#ab8063');g.strokeStyle=arch;g.lineWidth=8;g.beginPath();g.moveTo(380,279);g.lineTo(380,177);g.bezierCurveTo(380,66,588,66,588,177);g.lineTo(588,279);g.stroke();
  g.fillStyle='#f1ded0bb';g.beginPath();g.moveTo(383,155);g.quadraticCurveTo(370,245,410,278);g.lineTo(430,278);g.quadraticCurveTo(396,220,397,155);g.fill();g.beginPath();g.moveTo(583,155);g.quadraticCurveTo(606,242,560,278);g.lineTo(542,278);g.quadraticCurveTo(576,225,569,155);g.fill();
  for(let i=0;i<19;i++){const a=Math.PI+i*Math.PI/18,x=484+Math.cos(a)*102,y=178+Math.sin(a)*84;oval(x,y,9,5,'#798b72');oval(x+3,y-4,6,6,i%2?'#ebc6b7':'#f5e3c9');oval(x+3,y-4,2,2,'#ba8b72')}
- text('蓝诗曼  &  杨国林',408,90,17,'#66576b','identity');
- const person=(x,y,bride=false,guest=false)=>{
-  oval(x,y+56,guest?15:22,4,'#73556933');g.fillStyle=bride?'#fff0db':guest?'#817887':'#3f5165';g.beginPath();if(bride){g.moveTo(x-10,y+12);g.lineTo(x-31,y+55);g.quadraticCurveTo(x,y+63,x+31,y+55);g.lineTo(x+10,y+12)}else g.roundRect(x-12,y+9,24,36,5);g.fill();
-  if(!bride){box(x-9,y+40,6,17,'#3e4455');box(x+3,y+40,6,17,'#3e4455')}
-  oval(x,y-3,12,15,'#e6bd9e');g.fillStyle='#564653';g.beginPath();g.arc(x,y-8,12,Math.PI,Math.PI*2);g.fill();oval(x-4,y-3,1,1.3,'#665365');oval(x+4,y-3,1,1.3,'#665365');
-  if(bride){g.fillStyle='#fff5e6aa';g.beginPath();g.moveTo(x-9,y-12);g.lineTo(x-27,y+39);g.lineTo(x-11,y+24);g.fill();oval(x,y-18,10,3,'#f4e0b9');for(let j=0;j<5;j++)oval(x-9+j*4,y+26+Math.sin(j)*3,5,5,j%2?'#e0aaa4':'#f4dfbe');stroke([[x-11,y+16],[x,y+27]],'#e6bd9e',5)}else{stroke([[x-10,y+10],[x,y+25],[x+9,y+10]],'#f1dfc6',2);box(x-3,y+15,6,4,'#b46c69');stroke([[x+12,y+17],[x+24,y+25]],'#e6bd9e',5)}
+
+ const person=(x,y,bride=false,guest=false,style=0)=>{
+  oval(x,y+56,guest?15:22,4,'#73556933');g.fillStyle=bride?'#fff0db':guest?['#987e8d','#798d85','#b28b72','#77869b','#a79170'][style%5]:'#3f5165';g.beginPath();if(bride||(guest&&style%3===1)){g.moveTo(x-10,y+12);g.lineTo(x-31,y+55);g.quadraticCurveTo(x,y+63,x+31,y+55);g.lineTo(x+10,y+12)}else g.roundRect(x-12,y+9,24,36,5);g.fill();
+  if(!bride&&!(guest&&style%3===1)){box(x-9,y+40,6,17,'#3e4455');box(x+3,y+40,6,17,'#3e4455')}
+  oval(x,y-3,12,15,'#e6bd9e');g.fillStyle=guest&&style%5===0?'#c7c0b3':'#564653';g.beginPath();g.arc(x,y-8,12,Math.PI,Math.PI*2);g.fill();if(guest&&style%3===1){g.fillStyle='#564653';g.fillRect(x-12,y-8,4,22);g.fillRect(x+8,y-8,4,22)}if(guest&&style%5===0){g.strokeStyle='#7e766b';g.lineWidth=1;g.strokeRect(x-8,y-6,6,5);g.strokeRect(x+2,y-6,6,5)}oval(x-4,y-3,1,1.3,'#665365');oval(x+4,y-3,1,1.3,'#665365');
+  if(bride){g.fillStyle='#fff5e6aa';g.beginPath();g.moveTo(x-9,y-12);g.lineTo(x-27,y+39);g.lineTo(x-11,y+24);g.fill();oval(x,y-18,10,3,'#f4e0b9');for(let j=0;j<5;j++)oval(x-9+j*4,y+26+Math.sin(j)*3,5,5,j%2?'#e0aaa4':'#f4dfbe');stroke([[x-11,y+16],[x,y+27]],'#e6bd9e',5)}else{stroke([[x-10,y+10],[x,y+25],[x+9,y+10]],'#f1dfc6',2);if(!guest)box(x-3,y+15,6,4,'#b46c69');stroke([[x+12,y+17],[x+24,y+25]],'#e6bd9e',5)}
  };
+ let guestIndex=0;
+ for(const x of[176,222,268,314,360,610,656,702,748,794]){person(x,190+(guestIndex%2)*4,false,true,guestIndex++);}
+ for(const x of[200,252,304,356,610,662,714,766]){const i=guestIndex++;g.save();if(i%4===0){g.translate(x,239);g.scale(.78,.78);person(0,0,false,true,i)}else{person(x,226,false,true,i);stroke([[x-15,250],[x-22,234+Math.sin(t*2+i)*3]],'#dcb699',4)}g.restore()}
  person(457,210);person(510,210,true);
- for(const [x,y] of [[255,224],[300,232],[668,229],[710,220]]){person(x,y,false,true);stroke([[x-16,y+25],[x-20,y+16+Math.sin(t*2+x)*3]],'#dcb699',4)}
+
  for(const x of [325,641]){box(x-3,223,6,54,'#baa085');oval(x,221,23,9,'#7f947a');for(let k=0;k<7;k++)oval(x-15+k*5,214+Math.sin(k)*5,6,6,k%2?'#e6b7ae':'#f4e0ba')}
  for(let i=0;i<22;i++){const x=80+i*39,y=126+Math.sin(i)*17;oval(x,y,2,2,'#f8e5b6')}
  box(841,277,85,78,'#416c70');box(831,267,105,20,'#6c9390');box(852,242,64,26,'#f4ddbd');box(850,300,67,7,'#213e4b');text('囍',869,342,27,'#f3d6a1','symbol');
