@@ -28,6 +28,7 @@ $('#start').onclick=()=>beginGame(!!state.completed);
 $('#return-ticket').onclick=showTicket;
 $('#return-replay').onclick=()=>beginGame(true);
 $('#pause').onclick=()=>{if(!running)return;if(paused){paused=false;last=0;acc=0;$('#pause').textContent='Ⅱ';updateLabels()}else pause()};
+document.querySelectorAll('[data-photo-open]').forEach(b=>b.onclick=()=>{pause();$('#photo-dialog').showModal()});
 $('#info').onclick=()=>{pause();$('#information').showModal()};document.querySelectorAll('dialog .close').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 document.querySelectorAll('dialog').forEach(d=>{d.addEventListener('close',clearInput);d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}})});
 function platforms(){
