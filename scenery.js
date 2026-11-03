@@ -1,6 +1,6 @@
 /* Decorative scenery only: no collision, input, storage or game rules. */
 window.paintScenery=(g,city,time,phase)=>{
- const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},line=(pts,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},label=(s,x,y,size,c)=>{if(innerWidth<760)return;g.font=`${size}px serif`;g.fillStyle=c;g.fillText(s,x,y)};
+ const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},line=(pts,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},label=(s,x,y,size,c,role='decoration')=>{if(innerWidth<760&&role==='decoration')return;if(innerWidth<760&&role==='direction'){size=24;x=785;g.fillStyle='#46675f';g.fillRect(780,y-24,170,31);}g.font=`${size}px serif`;g.fillStyle=c;g.fillText(s,x,y,role==='direction'?160:960)};
  const lantern=(x,y,s=1)=>{g.save();g.translate(x,y);g.scale(s,s);line([[0,-19],[0,0]],'#735b43');oval(0,10,12,15,'#b55d43');oval(-3,8,6,12,'#da8c5d');line([[-8,0],[8,0]],'#f0c47e',3);line([[-8,23],[8,23]],'#e8b77b',3);line([[0,25],[0,35]],'#b45c42',2);g.restore()};
  const pot=(x,y)=>{box(x-9,y,18,4,'#b87858');box(x-7,y+4,14,13,'#a46d51');for(let i=0;i<5;i++){const a=i*1.3;line([[x,y],[x+Math.cos(a)*12,y-12-Math.sin(a)*5]],'#647e57',2);oval(x+Math.cos(a)*10,y-10-Math.sin(a)*5,5,3,'#819b68')}};
  const palm=(x,y,s=1)=>{g.save();g.translate(x,y);g.scale(s,s);line([[0,0],[-5,-45],[3,-96]],'#826a45',9);for(let i=0;i<9;i++)line([[-5+i%3,-i*11], [2+i%3,-i*11-2]],'#b59b69',2);for(let i=0;i<7;i++){const a=-Math.PI+i*Math.PI/6,dx=Math.cos(a)*55,dy=Math.sin(a)*29;g.strokeStyle=i%2?'#426e5c':'#66845d';g.lineWidth=7;g.beginPath();g.moveTo(3,-96);g.quadraticCurveTo(dx*.7,-123+dy,dx,-85+dy);g.stroke();for(let j=1;j<5;j++){let u=j/5;line([[dx*u,-100+dy*u],[dx*u+8,-85+dy*u]],'#65845c',2)}}oval(0,-95,5,6,'#92754a');g.restore()};
@@ -25,7 +25,7 @@ window.paintScenery=(g,city,time,phase)=>{
    for(const [x,y,w] of [[31,325,105],[208,284,83],[801,315,119]]){for(let i=0;i<w;i+=12)box(x+i,y,12,12,i%24===0?'#b57c56':'#e5c89b');line([[x,y+12],[x+w,y+12]],'#7b6b51',2);pot(x+9,y+51);pot(x+w-10,y+51)}
    lantern(181,248,.72);lantern(316,225,.65);lantern(775,253,.7);
    // Station sign is separate from the playable moving platform.
-   box(836,332,99,19,'#46675f');label('茂名方向 →',843,346,12,'#f4d8a4');
+   box(836,332,99,19,'#46675f');label('茂名方向 →',843,346,12,'#f4d8a4','direction');
   }
   if(city===2){
    box(22,289,125,24,'#ac6549');label('电 城 · 老 街',29,306,15,'#fae5ba');lantern(20,320,.65);lantern(151,320,.65);pot(32,391);pot(132,391);pot(800,390);palm(953,424,.8);

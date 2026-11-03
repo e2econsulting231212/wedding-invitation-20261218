@@ -1,12 +1,12 @@
 window.paintWedding=(g,t,dates)=>{
- const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},stroke=(p,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},text=(s,x,y,size,col)=>{if(innerWidth<760&&size<22)return;g.font=`${size}px serif`;g.fillStyle=col;g.fillText(s,x,y)};
+ const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},stroke=(p,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},text=(s,x,y,size,col,role='decoration')=>{if(innerWidth<760&&role==='decoration')return;if(innerWidth<760&&role==='identity'){size=26;x=355;y=144;}g.font=`${size}px serif`;g.fillStyle=col;g.fillText(s,x,y)};
  const bg=g.createLinearGradient(0,44,0,480);bg.addColorStop(0,'#b8adba');bg.addColorStop(.7,'#e8ceba');bg.addColorStop(1,'#c3a59d');g.fillStyle=bg;g.fillRect(0,44,960,436);
  // A small illustrated ceremony, with no photographic likenesses.
  box(150,278,670,9,'#b8978e');box(178,287,615,13,'#dec0a6');box(205,300,564,12,'#b5958d');
  const arch=g.createLinearGradient(400,80,560,280);arch.addColorStop(0,'#f5d69c');arch.addColorStop(1,'#ab8063');g.strokeStyle=arch;g.lineWidth=8;g.beginPath();g.moveTo(380,279);g.lineTo(380,177);g.bezierCurveTo(380,66,588,66,588,177);g.lineTo(588,279);g.stroke();
  g.fillStyle='#f1ded0bb';g.beginPath();g.moveTo(383,155);g.quadraticCurveTo(370,245,410,278);g.lineTo(430,278);g.quadraticCurveTo(396,220,397,155);g.fill();g.beginPath();g.moveTo(583,155);g.quadraticCurveTo(606,242,560,278);g.lineTo(542,278);g.quadraticCurveTo(576,225,569,155);g.fill();
  for(let i=0;i<19;i++){const a=Math.PI+i*Math.PI/18,x=484+Math.cos(a)*102,y=178+Math.sin(a)*84;oval(x,y,9,5,'#798b72');oval(x+3,y-4,6,6,i%2?'#ebc6b7':'#f5e3c9');oval(x+3,y-4,2,2,'#ba8b72')}
- text('蓝诗曼  &  杨国林',408,90,17,'#66576b');
+ text('蓝诗曼  &  杨国林',408,90,17,'#66576b','identity');
  const person=(x,y,bride=false,guest=false)=>{
   oval(x,y+56,guest?15:22,4,'#73556933');g.fillStyle=bride?'#fff0db':guest?'#817887':'#3f5165';g.beginPath();if(bride){g.moveTo(x-10,y+12);g.lineTo(x-31,y+55);g.quadraticCurveTo(x,y+63,x+31,y+55);g.lineTo(x+10,y+12)}else g.roundRect(x-12,y+9,24,36,5);g.fill();
   if(!bride){box(x-9,y+40,6,17,'#3e4455');box(x+3,y+40,6,17,'#3e4455')}
@@ -17,7 +17,7 @@ window.paintWedding=(g,t,dates)=>{
  for(const [x,y] of [[255,224],[300,232],[668,229],[710,220]]){person(x,y,false,true);stroke([[x-16,y+25],[x-20,y+16+Math.sin(t*2+x)*3]],'#dcb699',4)}
  for(const x of [325,641]){box(x-3,223,6,54,'#baa085');oval(x,221,23,9,'#7f947a');for(let k=0;k<7;k++)oval(x-15+k*5,214+Math.sin(k)*5,6,6,k%2?'#e6b7ae':'#f4e0ba')}
  for(let i=0;i<22;i++){const x=80+i*39,y=126+Math.sin(i)*17;oval(x,y,2,2,'#f8e5b6')}
- box(841,277,85,78,'#416c70');box(831,267,105,20,'#6c9390');box(852,242,64,26,'#f4ddbd');box(850,300,67,7,'#213e4b');text('囍',869,342,27,'#f3d6a1');
+ box(841,277,85,78,'#416c70');box(831,267,105,20,'#6c9390');box(852,242,64,26,'#f4ddbd');box(850,300,67,7,'#213e4b');text('囍',869,342,27,'#f3d6a1','symbol');
  // The date appears here only after the corresponding platform has been landed on.
  box(315,437,340,38,'#594d62');text('我们的婚期',336,461,13,'#dfc6ad');g.font='bold 23px Georgia';g.fillStyle='#ffe4ab';g.fillText([dates[0]?'20':'··',dates[1]?'26':'··','.',dates[2]?'12':'··','.',dates[3]?'18':'··'].join(''),425,464);
 };
