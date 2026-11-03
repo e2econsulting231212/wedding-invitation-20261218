@@ -6,7 +6,7 @@ window.paintWedding=(g,t,dates)=>{
  const arch=g.createLinearGradient(400,80,560,280);arch.addColorStop(0,'#f5d69c');arch.addColorStop(1,'#ab8063');g.strokeStyle=arch;g.lineWidth=8;g.beginPath();g.moveTo(380,279);g.lineTo(380,177);g.bezierCurveTo(380,66,588,66,588,177);g.lineTo(588,279);g.stroke();
  g.fillStyle='#f1ded0bb';g.beginPath();g.moveTo(383,155);g.quadraticCurveTo(370,245,410,278);g.lineTo(430,278);g.quadraticCurveTo(396,220,397,155);g.fill();g.beginPath();g.moveTo(583,155);g.quadraticCurveTo(606,242,560,278);g.lineTo(542,278);g.quadraticCurveTo(576,225,569,155);g.fill();
  for(let i=0;i<19;i++){const a=Math.PI+i*Math.PI/18,x=484+Math.cos(a)*102,y=178+Math.sin(a)*84;oval(x,y,9,5,'#798b72');oval(x+3,y-4,6,6,i%2?'#ebc6b7':'#f5e3c9');oval(x+3,y-4,2,2,'#ba8b72')}
- text('蓝诗曼  &  杨国林',408,90,17,'#66576b');text('把沿途的心意，带到这一场相聚',335,329,16,'#6e5863');
+ text('蓝诗曼  &  杨国林',408,90,17,'#66576b');
  const person=(x,y,bride=false,guest=false)=>{
   oval(x,y+56,guest?15:22,4,'#73556933');g.fillStyle=bride?'#fff0db':guest?'#817887':'#3f5165';g.beginPath();if(bride){g.moveTo(x-10,y+12);g.lineTo(x-31,y+55);g.quadraticCurveTo(x,y+63,x+31,y+55);g.lineTo(x+10,y+12)}else g.roundRect(x-12,y+9,24,36,5);g.fill();
   if(!bride){box(x-9,y+40,6,17,'#3e4455');box(x+3,y+40,6,17,'#3e4455')}
