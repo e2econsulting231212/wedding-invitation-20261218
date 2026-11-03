@@ -1,6 +1,6 @@
 /* Stylized city impressions, not geographically scaled maps. */
 window.paintLandmarks=(g,c,t)=>{
- const rect=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h)},path=(p,col,width=1)=>{g.strokeStyle=col;g.lineWidth=width;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},poly=(p,col)=>{g.fillStyle=col;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()},txt=(s,x,y,size=14)=>{g.font=`${size}px serif`;g.fillStyle='#314c53';g.fillText(s,x,y)};
+ const rect=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h)},path=(p,col,width=1)=>{g.strokeStyle=col;g.lineWidth=width;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},poly=(p,col)=>{g.fillStyle=col;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()},txt=(s,x,y,size=14)=>{if(innerWidth<760)return;g.font=`${size}px serif`;g.fillStyle='#314c53';g.fillText(s,x,y)};
  const roof=(x,y,w)=>{poly([[x-12,y+12],[x,y+3],[x+w/2,y-18],[x+w,y+3],[x+w+12,y+12],[x+w-4,y+9],[x+4,y+9]],'#425f60');path([[x-12,y+12],[x+w/2,y-15],[x+w+12,y+12]],'#b0bca1',2);path([[x-11,y+13],[x+w+11,y+13]],'#dec59b',3);for(let i=0;i<9;i++){const xx=x+i*w/8;path([[xx,y+8],[x+w/2+(xx-x-w/2)*.7,y-3]],'#849686',1)}};
  const pavilion=(x,y)=>{rect(x-22,y,5,41,'#9e6550');rect(x+18,y,5,41,'#9e6550');rect(x-25,y+37,52,5,'#b9ad8c');roof(x-33,y-7,66)};
  if(c===0){
@@ -13,7 +13,7 @@ window.paintLandmarks=(g,c,t)=>{
   // Hejiang-style multi-tiered eaves; landmark montage, not its real lakeside location.
   const x=343,w=135;rect(x-9,285,w+18,28,'#aaa188');rect(x,177,w,111,'#6b7278');rect(x+16,125,w-32,61,'#626b75');rect(x+31,82,w-62,52,'#74808a');
   for(const [yy,ww] of [[277,135],[224,135],[175,135],[124,103],[81,73]]){const xx=x+(w-ww)/2;for(let i=0;i<5;i++){rect(xx+8+i*(ww-16)/5,yy+15,4,30,'#98614c');rect(xx+10+i*(ww-16)/5,yy+18,(ww-25)/5,15,'#31465b')}roof(xx-5,yy,ww+10)}
-  rect(x+42,204,54,17,'#466061');g.fillStyle='#e8cd98';g.font='13px serif';g.fillText('合 江 楼',x+45,217);
+  rect(x+42,204,54,17,'#466061');g.fillStyle='#e8cd98';g.font='13px serif';innerWidth>=760&&g.fillText('合 江 楼',x+45,217);
   txt('惠州城市印象',25,70,15);
  }
  if(c===1){

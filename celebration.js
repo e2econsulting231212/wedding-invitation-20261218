@@ -1,5 +1,5 @@
 window.paintWedding=(g,t,dates)=>{
- const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},stroke=(p,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},text=(s,x,y,size,col)=>{g.font=`${size}px serif`;g.fillStyle=col;g.fillText(s,x,y)};
+ const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},stroke=(p,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},text=(s,x,y,size,col)=>{if(innerWidth<760&&size<22)return;g.font=`${size}px serif`;g.fillStyle=col;g.fillText(s,x,y)};
  const bg=g.createLinearGradient(0,44,0,480);bg.addColorStop(0,'#b8adba');bg.addColorStop(.7,'#e8ceba');bg.addColorStop(1,'#c3a59d');g.fillStyle=bg;g.fillRect(0,44,960,436);
  // A small illustrated ceremony, with no photographic likenesses.
  box(150,278,670,9,'#b8978e');box(178,287,615,13,'#dec0a6');box(205,300,564,12,'#b5958d');
@@ -36,6 +36,6 @@ window.paintNightLights=(g,c,t,lit)=>{
   g.shadowBlur=0;g.fillStyle='#324967';g.fillRect(290,408,124,17);g.fillStyle='#c7c6b7';g.fillRect(311,391,78,17);for(let i=0;i<7;i++){g.fillStyle=lit?'#f9d58e':'#6f8a98';g.fillRect(316+i*10,395,6,6)}
  }
  // A few warm windows remain ambient; the landmark itself only lights on activation.
- g.shadowBlur=0;for(const [x,y,w,h] of c===0?[[80,230,88,149],[681,205,101,174]]:[[59,268,72,121],[811,217,95,137]]){g.fillStyle='#243c54';g.fillRect(x,y,w,h);g.fillStyle='#506179';g.fillRect(x+w-10,y,10,h);for(let xx=x+9;xx<x+w-13;xx+=17)for(let yy=y+12;yy<y+h-12;yy+=23){g.fillStyle=(xx+yy)%3===0||lit?'#d9ac73':'#45586d';g.fillRect(xx,yy,7,10)}}
+ g.shadowBlur=0;for(const [x,y,w,h] of c===0?[[80,230,88,149],[681,205,101,174]]:[[59,268,72,121],[811,217,95,137]]){g.fillStyle='#243c54';g.fillRect(x,y,w,h);g.fillStyle='#506179';g.fillRect(x+w-10,y,10,h);for(let xx=x+9;xx<x+w-13;xx+=17)for(let yy=y+12;yy<y+h-12;yy+=23){g.fillStyle=(xx+yy)%3===0||lit?'#d9ac73':'#5d7a90';g.fillRect(xx,yy,7,10)}}
  g.restore();
 };
