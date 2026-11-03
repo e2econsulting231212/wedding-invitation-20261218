@@ -20,11 +20,16 @@ let visualCity=-1, visualPlatform=0;
 let checkpoint=0, facing=1, coyote=0, jumpBuffer=0, particles=[], previousPlatforms=[];
 function updateLabels(){$('#scene-names').hidden=state.city!==2;$('#date-reveal').hidden=state.city!==2;$('#date-reveal').textContent='我们的婚期：'+[state.dates[0]?'20':'··',state.dates[1]?'26':'··','.',state.dates[2]?'12':'··','.',state.dates[3]?'18':'··'].join('');$('#hud-city').textContent=['惠州 · 点亮合江楼','广州 · 点亮广州塔','茂名 · 亲友相聚'][state.city];$('#hud-status').textContent=state.unlocked[state.city]?'♥ 已点亮':'◇ 等你点亮';document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮合江楼','广州 · 借旋转平台，点亮广州塔','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':['跳上三级屋檐，触碰发光的窗户','等平台靠近，再起跳；塔上的光点在前方','踩亮四块日期格子，在下方拼出我们的婚期'][state.city]}
 function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();if(state.city===2&&state.dates.some(v=>!v))checkpoint=Math.min(checkpoint,state.dates.findIndex(v=>!v));const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;updateLabels()}
-function beginGame(replay=false){dismissPrinting();
+let entryTimer=null,entryShown=false;
+function beginGame(replay=false){clearTimeout(entryTimer);entryShown=true;if($('#entry-prompt').open)$('#entry-prompt').close();dismissPrinting();
  clearInput();if(replay){state.city=0;state.dates=[false,false,false,false];state.unlocked=[false,false,false];state.checkpoints=[0,0,0];save()}
- running=true;paused=false;last=0;acc=0;document.body.classList.add('playing');$('#cover').style.display='none';$('#pause').textContent='Ⅱ';resetPlayer();
+ running=true;paused=false;last=0;acc=0;document.body.classList.add('playing');$('#cover').style.display='none';$('#pause').textContent='Ⅱ';resetPlayer();requestAnimationFrame(()=>$('.journey').scrollIntoView({block:'start',behavior:'instant'}));
 }
 $('#start').onclick=()=>beginGame(!!state.completed);
+$('#entry-start').onclick=()=>beginGame(!!state.completed);
+$('#entry-ticket').onclick=()=>{$('#entry-prompt').close();showTicket()};
+function promptEntry(){if(entryShown||running)return;if(document.hidden||document.querySelector('dialog[open]')){entryTimer=setTimeout(promptEntry,500);return}entryShown=true;$('#entry-ticket').hidden=!state.completed;$('#entry-prompt').showModal()}
+entryTimer=setTimeout(promptEntry,5000);
 $('#return-ticket').onclick=showTicket;
 $('#return-replay').onclick=()=>beginGame(true);
 $('#pause').onclick=()=>{if(!running)return;if(paused){paused=false;last=0;acc=0;$('#pause').textContent='Ⅱ';updateLabels()}else pause()};
@@ -71,7 +76,7 @@ function house(x,y,w,h,color){
  for(let i=0;i<10;i++){const bx=x+((i*37)%Math.max(1,w-12)),by=y+12+((i*41)%Math.max(1,h-60));rect(bx,by,10,2,'#997e5840')}
  rect(x+6,y+h-6,w-12,6,'#93846a');
 }
-function draw(){const c=state.city;ctx.save();if(innerWidth<760){ctx.scale(1.4,1.4);ctx.translate(-Math.max(0,Math.min(274,player.x-270)),-90)}
+function draw(){const c=state.city;ctx.save();
  const sky=ctx.createLinearGradient(0,0,0,480);sky.addColorStop(0,['#182a46','#292941','#887e9b'][c]);sky.addColorStop(1,['#52677d','#976975','#e2c8b6'][c]);ctx.fillStyle=sky;ctx.fillRect(0,0,960,480);
  const sunX=[800,160,770][c];ctx.fillStyle='#ffe5a2';ctx.beginPath();ctx.arc(sunX,92,30,0,Math.PI*2);ctx.fill();
  if(c<2){for(let n=0;n<32;n++){ctx.fillStyle=n%3?'#d7d9cb88':'#fff2c4';ctx.fillRect(25+(n*137)%920,52+(n*43)%135,n%5?1:2,1)}ctx.fillStyle=c===0?'#253a55':'#48415b';ctx.beginPath();ctx.arc(sunX+12,83,27,0,Math.PI*2);ctx.fill()}
