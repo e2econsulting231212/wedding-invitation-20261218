@@ -1,6 +1,6 @@
-window.paintWedding=(g,t,dates)=>{
+window.paintWedding=(g,t,dates,lit=false,progress=0)=>{
  const box=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},oval=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()},stroke=(p,c,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke()},text=(s,x,y,size,col,role='decoration')=>{if(innerWidth<760&&role==='decoration')return;if(innerWidth<760&&role==='identity'){size=26;x=355;y=144;}g.font=`${size}px serif`;g.fillStyle=col;g.fillText(s,x,y)};
- const bg=g.createLinearGradient(0,44,0,480);bg.addColorStop(0,'#b8adba');bg.addColorStop(.7,'#e8ceba');bg.addColorStop(1,'#c3a59d');g.fillStyle=bg;g.fillRect(0,44,960,436);
+ const bg=g.createLinearGradient(0,44,0,480);bg.addColorStop(0,'#b8adba');bg.addColorStop(.7,'#e8ceba');bg.addColorStop(1,'#c3a59d');g.fillStyle=bg;g.fillRect(0,44,960,436);if(lit){const glow=g.createRadialGradient(484,190,12,484,190,290);glow.addColorStop(0,'rgba(255,224,158,'+(.35*progress)+')');glow.addColorStop(1,'rgba(255,224,158,0)');g.fillStyle=glow;g.fillRect(160,44,650,300)}
  // A small illustrated ceremony, with no photographic likenesses.
  box(150,278,670,9,'#b8978e');box(178,287,615,13,'#dec0a6');box(205,300,564,12,'#b5958d');
  const arch=g.createLinearGradient(400,80,560,280);arch.addColorStop(0,'#f5d69c');arch.addColorStop(1,'#ab8063');g.strokeStyle=arch;g.lineWidth=8;g.beginPath();g.moveTo(380,279);g.lineTo(380,177);g.bezierCurveTo(380,66,588,66,588,177);g.lineTo(588,279);g.stroke();
@@ -24,17 +24,20 @@ window.paintWedding=(g,t,dates)=>{
  // The date appears here only after the corresponding platform has been landed on.
  box(315,437,340,38,'#594d62');text('我们的婚期',336,461,13,'#dfc6ad');g.font='bold 23px Georgia';g.fillStyle='#ffe4ab';g.fillText([dates[0]?'20':'··',dates[1]?'26':'··','.',dates[2]?'12':'··','.',dates[3]?'18':'··'].join(''),425,464);
 };
-window.paintNightLights=(g,c,t,lit)=>{
+window.paintNightLights=(g,c,t,lit,progress=1)=>{
  if(c>1)return;
  g.save();
  if(c===0){
-  for(const [y,w] of [[277,135],[224,135],[175,135],[124,103],[81,73]]){const x=343+(135-w)/2;
-   g.strokeStyle=lit?'#ffd58d':'#546574';g.lineWidth=lit?2.5:1;g.shadowColor='#ffb956';g.shadowBlur=lit?10:0;g.beginPath();g.moveTo(x-17,y+12);g.lineTo(x+w/2,y-16);g.lineTo(x+w+17,y+12);g.stroke();
-   for(let i=0;i<5;i++){g.fillStyle=lit?'#ffe4a7':'#294459';g.fillRect(x+10+i*(w-16)/5,y+18,(w-25)/5,15)}
+  for(const [row,[y,w]] of [[277,135],[224,135],[175,135],[124,103],[81,73]].entries()){const rowLit=lit&&progress>row/5;const x=343+(135-w)/2;
+   // Let the existing roof tiles define the silhouette; only a faint horizontal eave catches the window light.
+   g.shadowBlur=0;if(rowLit){g.strokeStyle='rgba(224,194,143,0.24)';g.lineWidth=1;g.beginPath();g.moveTo(x-10,y+12);g.lineTo(x+w+10,y+12);g.stroke()}
+   g.shadowColor='#ffc879';g.shadowBlur=rowLit?5:0;
+   for(let i=0;i<5;i++){g.fillStyle=rowLit?'#ffe4a7':'#294459';g.fillRect(x+10+i*(w-16)/5,y+18,(w-25)/5,15)}
   }
-  if(lit){g.globalAlpha=.2;for(let i=0;i<10;i++){g.fillStyle='#ffce84';g.fillRect(352-i*2,334+i*11,114+i*5,2)}g.globalAlpha=1}
+  g.shadowBlur=0;
+  if(lit){g.globalAlpha=.2*progress;for(let i=0;i<10;i++){g.fillStyle='#ffce84';g.fillRect(352-i*2,334+i*11,114+i*5,2)}g.globalAlpha=1}
  }else{
-  for(let j=0;j<36;j++){const u=j/35,y=74+u*300,r=20+47*Math.pow(Math.abs(u-.43),1.35);g.strokeStyle=lit?`hsl(${(u*180+t*12)%360+190} 78% 76%)`:'#586b84';g.shadowColor=g.strokeStyle;g.shadowBlur=lit?8:0;g.lineWidth=lit?2.2:1;g.beginPath();g.ellipse(575,y,r,3,0,0,Math.PI*2);g.stroke()}
+  for(let j=0;j<36;j++){const u=j/35,y=74+u*300,r=20+47*Math.pow(Math.abs(u-.43),1.35),rowLit=lit&&j>=Math.floor((1-progress)*36);g.strokeStyle=rowLit?`hsl(${(u*180+t*12)%360+190} 78% 76%)`:'#586b84';g.shadowColor=g.strokeStyle;g.shadowBlur=rowLit?8:0;g.lineWidth=rowLit?2.2:1;g.beginPath();g.ellipse(575,y,r,3,0,0,Math.PI*2);g.stroke()}
   // Pearl River cruise and illuminated embankments.
   g.shadowBlur=0;g.fillStyle='#324967';g.fillRect(290,408,124,17);g.fillStyle='#c7c6b7';g.fillRect(311,391,78,17);for(let i=0;i<7;i++){g.fillStyle=lit?'#f9d58e':'#6f8a98';g.fillRect(316+i*10,395,6,6)}
  }
