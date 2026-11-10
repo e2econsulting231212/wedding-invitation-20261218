@@ -10,7 +10,7 @@ const arrival=['从惠州出发，带上一程欢喜。','途经广州，离相�
 if(!Array.isArray(state.seenCities)){state.seenCities=[0,1,2].map(i=>!!state.completed||i<state.city||(i===state.city&&((state.checkpoints?.[i]||0)>0||state.unlocked[i])))}
 const lightProgress=state.unlocked.map(v=>v?1:0);
 let fallNotice=-10;
-function enterCity(){clearInput();lightProgress[state.city]=state.unlocked[state.city]?1:0;$('#arrival-copy').textContent=arrival[state.city];$('#overview-title').textContent=cities[state.city];$('#overview-copy').textContent=arrival[state.city];view.enter(state.city,!!state.seenCities[state.city],()=>{state.seenCities[state.city]=true;save();clearInput();$('#city-overview').hidden=true});$('#city-overview').hidden=view.phase!=='panorama';}
+function enterCity(){clearInput();lightProgress[state.city]=state.unlocked[state.city]?1:0;$('#arrival-copy').textContent=arrival[state.city];$('#overview-title').textContent=cities[state.city];$('#overview-copy').textContent=arrival[state.city];view.enter(!!state.seenCities[state.city],()=>{state.seenCities[state.city]=true;save();clearInput();$('#city-overview').hidden=true});$('#city-overview').hidden=view.phase!=='panorama';}
 $('#overview-skip').onclick=()=>view.skip();
 const fitHeight=()=>document.documentElement.style.setProperty('--screen-height',(window.visualViewport?.height||innerHeight)+'px');fitHeight();window.addEventListener('resize',fitHeight);window.visualViewport?.addEventListener('resize',fitHeight);
 let toastTimer=null;
@@ -22,13 +22,43 @@ function pressed(k){return keys.has(k)||[...pointers.values()].includes(k)}
 function clearInput(){pointers.clear();keys.clear();jumpQueued=false;document.querySelectorAll('[data-key]').forEach(b=>b.classList.remove('pressed'))}
 function pause(){clearInput();if(running){paused=true;$('#pause').textContent='▶';$('#pause').setAttribute('aria-label','继续游戏');$('#hint').textContent='已暂停 · 点击 ▶ 继续';}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});window.addEventListener('blur',pause);
-document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();if(view.phase!=='play'||paused||!running)return;b.setPointerCapture(e.pointerId);pointers.set(e.pointerId,b.dataset.key);if(b.dataset.key==='jump')jumpQueued=true;b.classList.add('pressed')});const end=e=>{pointers.delete(e.pointerId);b.classList.toggle('pressed',[...pointers.values()].includes(b.dataset.key))};b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);b.addEventListener('lostpointercapture',end);b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();if(e.clientX<r.left-22||e.clientX>r.right+22||e.clientY<r.top-22||e.clientY>r.bottom+22)end(e)})});
+const controlButtons=document.querySelectorAll('[data-key]');
+function releasePointer(event){
+ const key=pointers.get(event.pointerId);
+ if(!key)return;
+ pointers.delete(event.pointerId);
+ for(const button of controlButtons){
+  if(button.dataset.key===key)button.classList.toggle('pressed',[...pointers.values()].includes(key));
+ }
+}
+window.addEventListener('pointerup',releasePointer,true);
+window.addEventListener('pointercancel',releasePointer,true);
+for(const button of controlButtons){
+ button.addEventListener('contextmenu',event=>event.preventDefault());
+ button.addEventListener('pointerdown',event=>{
+  if(event.button!==0)return;
+  event.preventDefault();
+  if(view.phase!=='play'||paused||!running)return;
+  pointers.set(event.pointerId,button.dataset.key);
+  if(button.dataset.key==='jump')jumpQueued=true;
+  button.classList.add('pressed');
+  button.setPointerCapture(event.pointerId);
+ });
+ button.addEventListener('lostpointercapture',releasePointer);
+ button.addEventListener('pointermove',event=>{
+  if(!pointers.has(event.pointerId))return;
+  const bounds=button.getBoundingClientRect();
+  const tolerance=8;
+  if(!event.buttons||event.clientX<bounds.left-tolerance||event.clientX>bounds.right+tolerance||
+     event.clientY<bounds.top-tolerance||event.clientY>bounds.bottom+tolerance)releasePointer(event);
+ });
+}
 const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'jump',' ':'jump',w:'jump'};
 window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;const k=keyMap[e.key];if(k){e.preventDefault();if(view.phase!=='play'||paused||!running)return;if(e.repeat&&!keys.has(k))return;if(k==='jump'&&!keys.has(k))jumpQueued=true;keys.add(k)}});window.addEventListener('keyup',e=>keys.delete(keyMap[e.key]));
 let visualCity=-1, visualPlatform=0;
 let checkpoint=0, facing=1, coyote=0, jumpBuffer=0, particles=[], previousPlatforms=[];
 function updateLabels(){$('#scene-names').hidden=state.city!==2;$('#date-reveal').hidden=state.city!==2;$('#date-reveal').textContent='我们的婚期：'+[state.dates[0]?'20':'··',state.dates[1]?'26':'··','.',state.dates[2]?'12':'··','.',state.dates[3]?'18':'··'].join('');$('#hud-city').textContent=['惠州 · 点亮合江楼','广州 · 点亮广州塔','茂名 · 亲友相聚'][state.city];$('#hud-status').textContent=state.unlocked[state.city]?'♥ 已点亮':'◇ 等你点亮';document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮合江楼','广州 · 借旋转平台，点亮广州塔','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':[checkpoint===0?'按住 →，接近屋檐边缘时轻点 ↑':'跳上屋檐，触碰合江楼的光点','等平台靠近，再起跳；塔上的光点在前方','踩亮四块日期格子，在下方拼出我们的婚期'][state.city]}
-function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();if(state.city===2&&state.dates.some(v=>!v))checkpoint=Math.min(checkpoint,state.dates.findIndex(v=>!v));const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;view.snapNext=true;updateLabels()}
+function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();if(state.city===2&&state.dates.some(v=>!v))checkpoint=Math.min(checkpoint,state.dates.findIndex(v=>!v));const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;updateLabels()}
 let entryTimer=null,entryShown=false;try{entryShown=sessionStorage.getItem('wedding-prompt-dismissed')==='1'}catch{}
 $('#entry-later').onclick=()=>$('#entry-prompt').close();$('#entry-prompt').addEventListener('close',()=>{entryShown=true;try{sessionStorage.setItem('wedding-prompt-dismissed','1')}catch{}});
 function beginGame(replay=false){clearTimeout(entryTimer);entryShown=true;if($('#entry-prompt').open)$('#entry-prompt').close();dismissPrinting();
@@ -126,7 +156,7 @@ function draw(){const c=state.city;view.begin(ctx);
 let renderFault=false;
 $('#render-retry').onclick=()=>{renderFault=false;$('#render-error').hidden=true;last=0;acc=0;clearInput()};
 $('#render-info').onclick=()=>$('#info').click();
-function frame(t){requestAnimationFrame(frame);if(renderFault)return;try{const elapsed=last?Math.min((t-last)/1000,.05):0;last=t;const active=running&&!paused&&!document.querySelector('dialog[open]');view.update(player,platforms(),visualPlatform,elapsed,active);if(active&&state.unlocked[state.city])lightProgress[state.city]=Math.min(1,lightProgress[state.city]+elapsed*.8);acc+=elapsed;while(acc>=1/120){step(1/120);acc-=1/120}draw()}catch(error){renderFault=true;pause();canvas.width=canvas.width;$('#render-error').hidden=false;console.error('画面绘制失败',error)}}requestAnimationFrame(frame);
+function frame(t){requestAnimationFrame(frame);if(renderFault)return;try{const elapsed=last?Math.min((t-last)/1000,.05):0;last=t;const active=running&&!paused&&!document.querySelector('dialog[open]');view.update(elapsed,active);if(active&&state.unlocked[state.city])lightProgress[state.city]=Math.min(1,lightProgress[state.city]+elapsed*.8);acc+=elapsed;while(acc>=1/120){step(1/120);acc-=1/120}draw()}catch(error){renderFault=true;pause();canvas.width=canvas.width;$('#render-error').hidden=false;console.error('画面绘制失败',error)}}requestAnimationFrame(frame);
 
 let printTimer=null;
 function dismissPrinting(){clearTimeout(printTimer);printTimer=null;$('#printing').hidden=true}

@@ -24,3 +24,11 @@
 .playing #notice{pointer-events:none;bottom:calc(80px + env(safe-area-inset-bottom));max-width:calc(100vw - 40px);font-size:12px;padding:7px 12px;line-height:1.5;white-space:nowrap}
 @media(min-width:901px){body.playing{height:var(--screen-height,100vh);display:flex;flex-direction:column;overflow:hidden}.playing header{flex:0 0 auto;width:100%;padding:18px 40px}.playing main{flex:1;min-height:0;width:100%;max-width:1240px;padding:12px 40px 18px;display:block}.playing .journey{height:100%;display:flex;flex-direction:column}.playing .game-wrap{flex:1;height:auto;min-height:180px}.playing .route,.playing .game-bottom,.playing #arrival-copy,.playing #date-reveal,.playing .controls,.playing #return-actions{flex:0 0 auto}.playing .game-bottom{padding:10px 0}.playing .controls{padding:10px 0 0}.playing footer,.playing .prototype{display:none}.playing #date-reveal{margin-bottom:5px}}
 .playing{overscroll-behavior:none}.playing .game-wrap{touch-action:none}@media(max-width:900px){.playing header{height:calc(53px + env(safe-area-inset-top));padding-top:calc(9px + env(safe-area-inset-top));padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}.playing main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}}@media(max-width:900px) and (max-height:500px){.playing header{height:calc(43px + env(safe-area-inset-top));padding-top:calc(6px + env(safe-area-inset-top))}}
+
+/* Keep the frame fixed and the touch targets stationary. */
+.playing .controls button{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:none}
+.playing .controls button:active,.playing .controls button.pressed{transform:none;filter:brightness(.87)}
+@media(max-width:900px) and (orientation:portrait){
+ .playing .game-wrap{flex:0 0 auto;min-height:0;aspect-ratio:2/1}
+ .playing .controls{margin-top:8px}
+}
