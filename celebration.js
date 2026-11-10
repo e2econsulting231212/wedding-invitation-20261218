@@ -38,7 +38,5 @@ window.paintNightLights=(g,c,t,lit)=>{
   // Pearl River cruise and illuminated embankments.
   g.shadowBlur=0;g.fillStyle='#324967';g.fillRect(290,408,124,17);g.fillStyle='#c7c6b7';g.fillRect(311,391,78,17);for(let i=0;i<7;i++){g.fillStyle=lit?'#f9d58e':'#6f8a98';g.fillRect(316+i*10,395,6,6)}
  }
- // A few warm windows remain ambient; the landmark itself only lights on activation.
- g.shadowBlur=0;for(const [x,y,w,h] of c===0?[[80,230,88,149],[681,205,101,174]]:[[59,268,72,121],[811,217,95,137]]){g.fillStyle='#243c54';g.fillRect(x,y,w,h);g.fillStyle='#506179';g.fillRect(x+w-10,y,10,h);for(let xx=x+9;xx<x+w-13;xx+=17)for(let yy=y+12;yy<y+h-12;yy+=23){g.fillStyle=(xx+yy)%3===0||lit?'#d9ac73':'#5d7a90';g.fillRect(xx,yy,7,10)}}
  g.restore();
 };

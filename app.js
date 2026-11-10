@@ -86,7 +86,12 @@ function draw(){const c=state.city;ctx.save();
  for(let i=0;i<10;i++){const x=(i*173+40)%960;const y=75+(i*37)%130;ctx.strokeStyle='#ffffff66';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x,y-3);ctx.lineTo(x+5,y);ctx.stroke()}
  if(c!==2)window.paintScenery?.(ctx,c,clock,'back');
  if(c!==2)window.paintLandmarks?.(ctx,c,clock);
- if(c===0){tree(35,245);tree(865,250);}
+ if(c===0){
+  house(55,204,105,115,'#647c82');
+  house(798,185,102,128,'#6f8180');
+  tree(23,245);
+  tree(903,250);
+ }
  if(c===1){house(15,250,140,160,'#d7c39b');house(195,215,110,200,'#dbb78e');house(785,200,150,210,'#d4b792');
  ctx.strokeStyle='#8c6855';ctx.lineWidth=4;ctx.beginPath();ctx.arc(422,302,47,0,Math.PI*2);ctx.stroke();for(const p of platforms().filter(p=>p.moving)){ctx.strokeStyle='#b38964';ctx.beginPath();ctx.moveTo(p.x+52, p.y+8);ctx.lineTo(445,313);ctx.stroke()}}
  if(c===2)window.paintWedding(ctx,clock,state.dates);
