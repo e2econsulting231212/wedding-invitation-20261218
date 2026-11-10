@@ -21,8 +21,9 @@ let checkpoint=0, facing=1, coyote=0, jumpBuffer=0, particles=[], previousPlatfo
 function updateLabels(){$('#scene-names').hidden=state.city!==2;$('#date-reveal').hidden=state.city!==2;$('#date-reveal').textContent='我们的婚期：'+[state.dates[0]?'20':'··',state.dates[1]?'26':'··','.',state.dates[2]?'12':'··','.',state.dates[3]?'18':'··'].join('');$('#hud-city').textContent=['惠州 · 点亮合江楼','广州 · 点亮广州塔','茂名 · 亲友相聚'][state.city];$('#hud-status').textContent=state.unlocked[state.city]?'♥ 已点亮':'◇ 等你点亮';document.querySelectorAll('.route span').forEach((e,i)=>e.classList.toggle('active',i===state.city));$('#city-label').textContent=['惠州 · 跃上屋檐，点亮合江楼','广州 · 借旋转平台，点亮广州塔','茂名 · 跳上婚期，抵达打印机'][state.city];$('#hint').textContent=state.unlocked[state.city]?'机关完成 · 继续向右前往下一站 →':['跳上三级屋檐，触碰发光的窗户','等平台靠近，再起跳；塔上的光点在前方','踩亮四块日期格子，在下方拼出我们的婚期'][state.city]}
 function resetPlayer(){checkpoint=Number(state.checkpoints?.[state.city])||0;const ps=platforms();if(state.city===2&&state.dates.some(v=>!v))checkpoint=Math.min(checkpoint,state.dates.findIndex(v=>!v));const p=ps[Math.min(checkpoint,ps.length-1)]||ps[0];player={x:p.x+Math.min(p.w/2,45),y:p.y-28,vy:0,ground:true,on:checkpoint};coyote=.1;jumpBuffer=0;updateLabels()}
 let entryTimer=null,entryShown=false;
+let towerLitAt=null;
 function beginGame(replay=false){clearTimeout(entryTimer);entryShown=true;if($('#entry-prompt').open)$('#entry-prompt').close();dismissPrinting();
- clearInput();if(replay){state.city=0;state.dates=[false,false,false,false];state.unlocked=[false,false,false];state.checkpoints=[0,0,0];save()}
+ clearInput();if(replay){towerLitAt=null;state.city=0;state.dates=[false,false,false,false];state.unlocked=[false,false,false];state.checkpoints=[0,0,0];save()}
  running=true;paused=false;last=0;acc=0;document.body.classList.add('playing');$('#cover').style.display='none';$('#pause').textContent='Ⅱ';resetPlayer();requestAnimationFrame(()=>$('.journey').scrollIntoView({block:'start',behavior:'instant'}));
 }
 $('#start').onclick=()=>beginGame(!!state.completed);
@@ -53,7 +54,14 @@ function step(dt){if(!running||paused||document.querySelector('dialog[open]'))re
  for(let i=0;i<ps.length;i++){const p=ps[i];if(player.x+10>p.x&&player.x-10<p.x+p.w&&oldY+28<=p.y+3&&player.y+28>=p.y&&player.vy>=0){if(player.vy>240)for(let n=0;n<5;n++)particles.push({x:player.x+(n-2)*4,y:p.y-2,vx:(n-2)*13,vy:-22-n%2*12,life:.35});player.y=p.y-28;player.vy=0;player.ground=true;player.on=i;if(state.city===2&&i>=1&&i<=4&&!state.dates[i-1]){state.dates[i-1]=true;save();burst(player.x,p.y);updateLabels()}if(!p.moving&&i>checkpoint){checkpoint=i;state.checkpoints??=[0,0,0];state.checkpoints[state.city]=i;save()}break}}
  if(player.y>530){resetPlayer();toast('没关系，回到刚刚站稳的屋檐，再试一次。');return}
  const target=[{x:407,y:245},{x:575,y:210},{x:670,y:255}][state.city];
- if((state.city!==2||state.dates.every(Boolean))&&!state.unlocked[state.city]&&Math.abs(player.x-target.x)<48&&Math.abs(player.y-target.y)<62){state.unlocked[state.city]=true;save();burst(target.x,target.y);updateLabels();toast(['灯亮了！屋檐上的风，也在祝福你。','广州塔亮了！继续跳向右侧站台。','婚期已点亮！去右边打印你的纪念票。'][state.city])}
+ if((state.city!==2||state.dates.every(Boolean))&&!state.unlocked[state.city]&&Math.abs(player.x-target.x)<48&&Math.abs(player.y-target.y)<62){
+  state.unlocked[state.city]=true;
+  if(state.city===1)towerLitAt=clock;
+  save();
+  burst(target.x,target.y);
+  updateLabels();
+  toast(['灯亮了！屋檐上的风，也在祝福你。','广州塔正在逐层亮起。','婚期已点亮！去右边打印你的纪念票。'][state.city]);
+ }
  if(player.x>900&&player.ground){if(!state.unlocked[state.city]||(state.city===2&&!state.dates.every(Boolean))){toast('先点亮这一城的机关，再出发吧。');player.x=880}else if(state.city<2){state.city++;save();resetPlayer()}else finish()}
  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=130*dt;p.life-=dt}particles=particles.filter(p=>p.life>0);
 }
@@ -97,7 +105,7 @@ function draw(){const c=state.city;ctx.save();
  if(c===2)window.paintWedding(ctx,clock,state.dates);
  if(c!==2)window.paintScenery?.(ctx,c,clock,'front');
  // Fade decorative planes; all playable surfaces are rendered sharply afterwards.
- if(c!==2){ctx.fillStyle=['#233b542e','#181c3966'][c];ctx.fillRect(0,44,960,436);window.paintNightLights(ctx,c,clock,state.unlocked[c])}
+ if(c!==2){ctx.fillStyle=['#233b542e','#181c3966'][c];ctx.fillRect(0,44,960,436);window.paintNightLights(ctx,c,clock,state.unlocked[c],towerLitAt===null?Infinity:clock-towerLitAt)}
  const ps=platforms();if(visualCity!==c){visualCity=c;visualPlatform=checkpoint}if(player.ground&&player.on!=null)visualPlatform=player.on;const routeIndex=visualPlatform;
  const next=running?Math.min(routeIndex+1,ps.length-1):-1;
  for(const [i,p] of ps.entries())window.drawPlatformDepth(ctx,p,i,next,clock,!p.digit||state.dates[i-1],c===2);

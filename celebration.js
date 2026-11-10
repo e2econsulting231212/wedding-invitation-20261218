@@ -24,17 +24,52 @@ window.paintWedding=(g,t,dates)=>{
  // The date appears here only after the corresponding platform has been landed on.
  box(315,437,340,38,'#594d62');text('我们的婚期',336,461,13,'#dfc6ad');g.font='bold 23px Georgia';g.fillStyle='#ffe4ab';g.fillText([dates[0]?'20':'··',dates[1]?'26':'··','.',dates[2]?'12':'··','.',dates[3]?'18':'··'].join(''),425,464);
 };
-window.paintNightLights=(g,c,t,lit)=>{
+window.paintNightLights=(g,c,t,lit,towerLightAge=Infinity)=>{
  if(c>1)return;
  g.save();
  if(c===0){
   for(const [y,w] of [[277,135],[224,135],[175,135],[124,103],[81,73]]){const x=343+(135-w)/2;
-   g.strokeStyle=lit?'#ffd58d':'#546574';g.lineWidth=lit?2.5:1;g.shadowColor='#ffb956';g.shadowBlur=lit?10:0;g.beginPath();g.moveTo(x-17,y+12);g.lineTo(x+w/2,y-16);g.lineTo(x+w+17,y+12);g.stroke();
+   g.shadowColor='#ffb956';g.shadowBlur=lit?10:0;
    for(let i=0;i<5;i++){g.fillStyle=lit?'#ffe4a7':'#294459';g.fillRect(x+10+i*(w-16)/5,y+18,(w-25)/5,15)}
   }
   if(lit){g.globalAlpha=.2;for(let i=0;i<10;i++){g.fillStyle='#ffce84';g.fillRect(352-i*2,334+i*11,114+i*5,2)}g.globalAlpha=1}
  }else{
-  for(let j=0;j<36;j++){const u=j/35,y=74+u*300,r=20+47*Math.pow(Math.abs(u-.43),1.35);g.strokeStyle=lit?`hsl(${(u*180+t*12)%360+190} 78% 76%)`:'#586b84';g.shadowColor=g.strokeStyle;g.shadowBlur=lit?8:0;g.lineWidth=lit?2.2:1;g.beginPath();g.ellipse(575,y,r,3,0,0,Math.PI*2);g.stroke()}
+  const sweepDuration=1.24;
+  const fadeDuration=.18;
+  for(let j=0;j<36;j++){
+   const height=j/35;
+   const y=74+height*300;
+   const radius=20+47*Math.pow(Math.abs(height-.43),1.35);
+   const elapsed=towerLightAge-(1-height)*sweepDuration;
+   const intensity=lit?Math.max(0,Math.min(1,elapsed/fadeDuration)):0;
+   g.strokeStyle='#586b84';
+   g.lineWidth=1;
+   g.beginPath();
+   g.ellipse(575,y,radius,3,0,0,Math.PI*2);
+   g.stroke();
+   if(intensity>0){
+    const shimmer=.75+.24*Math.sin(t*3.3+height*9);
+    const hue=190+((height*180+t*12)%360);
+    g.strokeStyle=`hsl(${hue} 78% 76%)`;
+    g.shadowColor=g.strokeStyle;
+    g.shadowBlur=8;
+    g.lineWidth=2.2;
+    g.globalAlpha=intensity*shimmer;
+    g.stroke();
+    g.shadowBlur=0;
+    g.globalAlpha=1;
+   }
+  }
+  if(lit&&towerLightAge>=sweepDuration+fadeDuration){
+   g.globalAlpha=.75+.24*Math.sin(t*3.3);
+   g.fillStyle='#d5eeff';
+   g.shadowColor=g.fillStyle;
+   g.shadowBlur=8;
+   g.beginPath();
+   g.arc(572,38,2.4,0,Math.PI*2);
+   g.fill();
+   g.globalAlpha=1;
+  }
   // Pearl River cruise and illuminated embankments.
   g.shadowBlur=0;g.fillStyle='#324967';g.fillRect(290,408,124,17);g.fillStyle='#c7c6b7';g.fillRect(311,391,78,17);for(let i=0;i<7;i++){g.fillStyle=lit?'#f9d58e':'#6f8a98';g.fillRect(316+i*10,395,6,6)}
  }
